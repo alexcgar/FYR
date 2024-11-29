@@ -1,0 +1,46 @@
+/* src/components/Navbar.css */
+.navbar-custom {
+    position: fixed; /* Fijarlo en la parte superior */
+    top: 0; /* Pegado al borde superior */
+    left: 0; /* Alineado al borde izquierdo */
+    width: 100%; /* Ocupa todo el ancho de la pantalla */
+    z-index: 1000; /* Asegurarse de que quede por encima de otros elementos */
+    padding: 0.5rem 1rem; /* Espaciado interno */
+  }
+  
+  .navbar-custom .navbar-brand {
+    color: #ffffff; /* Color blanco para el texto */
+    font-size: 1.5rem;
+  }
+  
+  .navbar-custom .navbar-nav .nav-link {
+    color: #ffffff; /* Color blanco para los enlaces */
+    margin-right: 10px;
+  }
+  
+  .navbar-custom .navbar-nav .nav-link:hover {
+    color: #17a2b8; /* Color azul claro en el hover */
+  }
+  
+  .navbar-custom .navbar-toggler {
+    border-color: #17a2b8; /* Color del borde del botón toggle */
+  }
+  
+
+  .logo {
+    height: 1.8em;
+    margin-left: 1;
+  }
+
+  .custom-button {
+    background-color: #672486;
+    color: white;
+    border: none; /* Eliminar borde si lo prefieres */
+  }
+  
+  .custom-button:hover {
+    background-color: #021c99; /* Un color más oscuro para el hover */
+  }
+
+  
+  

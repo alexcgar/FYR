@@ -1,0 +1,54 @@
+
+.centrado {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.form-control {
+  width: 100%;
+}
+
+.btn {
+  margin-top: 1rem;
+}
+
+.card-img-top {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.col-md-4 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.option-verde {
+  background-color: #68ad6b; /* Verde */
+  color: #fff;
+   
+}
+.option-amarillo {
+  background-color: #ead143; /* Amarillo */
+  color: #000;
+}
+
+.option-rojo {
+  background-color: #e05555; /* Rojo */
+  color: #fff;
+}
+
+.option:hover {
+  color: blueviolet;
+  
+}
+
+@media (min-width: 768px) and (max-width: 1361px) {
+  .foto-personalizada {
+    display: none;
+  }
+}
