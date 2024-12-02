@@ -1,124 +1,113 @@
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   MDBBtn,
-  MDBContainer,
   MDBCard,
   MDBCardBody,
   MDBIcon,
   MDBSpinner,
-  MDBRow,
-  MDBCol,
 } from "mdb-react-ui-kit";
-import audioFile from "../../assets/Audio/Audio.mp3";
+import "../components_css/Audio.css";
 
-const AudioPlayer = () => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+function AudioPlayer() {
   const audioRef = useRef(null);
+  const [audioUrl, setAudioUrl] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
-  const startPlaying = () => {
-    if (audioRef.current) {
-      audioRef.current.play();
-      setIsPlaying(true);
-    }
+  const startRecording = () => {
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
+        audioChunksRef.current = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunksRef.current.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const audioBlob = new Blob(audioChunksRef.current, {
+            type: "audio/wav",
+          });
+          const url = URL.createObjectURL(audioBlob);
+          setAudioUrl(url);
+          audioRef.current.src = url;
+        };
+
+        mediaRecorder.start();
+        setIsRecording(true);
+
+        // setTimeout(() => {
+        //   mediaRecorder.stop();
+        //   setIsRecording(false);
+        // }, 10000000);   Cambia este valor para ajustar la duración de la grabación
+      })
+      .catch((error) => {
+        console.error("Error accessing microphone:", error);
+      });
   };
 
-  const stopPlaying = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
   };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-    }
-  };
-
-  const handleAudioLoaded = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
-  };
-
-  const handleProgressChange = (event) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = event.target.value;
-      setCurrentTime(event.target.value);
-    }
+  const handleSend = () => {
+    // Aquí puedes agregar la lógica para enviar el audio grabado
+    console.log("Enviando audio:", audioUrl);
   };
 
   return (
-   
-      <MDBCol md="12" lg="12" xl="6">
-        <MDBContainer fluid className="my-2">
-          <MDBCard className="shadow-">
-            <MDBCardBody className="text-center bg-dark text-white">
-              <h3 className="mb-4">
-                <MDBIcon fas icon="headphones" className="me-2" />
-                Reproducir Audio
-              </h3>
-
-              <div className="mb-4">
-                <audio
-                  ref={audioRef}
-                  src={audioFile}
-                  className="w-100"
-                  style={{
-                    height: "50px",
-                    borderRadius: "10px",
-                  }}
-                  onTimeUpdate={handleTimeUpdate}
-                  onLoadedMetadata={handleAudioLoaded}
-                />
-              </div>
-
-              <div className="mb-4">
-                <input
-                  type="range"
-                  min="0"
-                  max={duration}
-                  value={currentTime}
-                  onChange={handleProgressChange}
-                  className="w-100"
-                />
-              </div>
-
-              <div className="d-flex justify-content-center gap-3">
-                <MDBBtn
-                  color="primary"
-                  onClick={startPlaying}
-                  disabled={isPlaying}
-                >
-                  <MDBIcon fas icon="play" className="me-2" />
-                  {isPlaying ? (
-                    <>
-                      Reproduciendo
-                      <MDBSpinner size="sm" className="ms-2" />
-                    </>
-                  ) : (
-                    "Iniciar Reproducción"
-                  )}
-                </MDBBtn>
-
-                <MDBBtn
-                  color="danger"
-                  onClick={stopPlaying}
-                  disabled={!isPlaying}
-                >
-                  <MDBIcon fas icon="stop" className="me-2" />
-                  Detener
-                </MDBBtn>
-              </div>
-            </MDBCardBody>
-          </MDBCard>
-        </MDBContainer>
-      </MDBCol>
-   
+    <MDBCard className=" text-white">
+      <MDBCardBody className="nova rounded-4">
+        <h3 className=" mb-5">Realizar Pedido</h3>
+        <div className="mb-4">
+          <audio
+            ref={audioRef}
+            controls
+            src={audioUrl}
+            className="w-100"
+            style={{
+              height: "44px",
+              borderRadius: "10px",
+            }}
+          />
+        </div>
+        <div className="d-flex  gap-3">
+          <MDBBtn
+            color=" text-white border border-white"
+            onClick={isRecording ? stopRecording : startRecording}
+            
+          >
+            <MDBIcon
+              fas
+              icon={isRecording ? "stop" : "microphone"}
+              className="me-2"
+            />
+            {isRecording ? (
+              <>
+                Grabando
+                <MDBSpinner size="sm" className="ms-2" />
+              </>
+            ) : (
+              "Iniciar Grabación"
+            )}
+          </MDBBtn>
+          <MDBBtn
+            color="text-white border border-white"
+            onClick={handleSend}
+            disabled={!audioUrl || isRecording}
+          >
+            <MDBIcon fas icon="paper-plane" className="me-2" />
+            Enviar
+          </MDBBtn>
+        </div>
+      </MDBCardBody>
+    </MDBCard>
   );
-};
+}
 
 export default AudioPlayer;

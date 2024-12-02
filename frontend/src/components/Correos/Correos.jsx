@@ -1,8 +1,28 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 import { fetchCorreos, sendSeleccion } from "../../Services/Api";
 import "../components_css/Correos.css";
 
-const ProductoCard = ({ producto, onSeleccionChange, onEliminar }) => {
+
+
+
+const ProductoCard = ({ producto, onSeleccionChange}) => {
+
+  ProductoCard.propTypes = {
+  producto: PropTypes.shape({
+    descripcion: PropTypes.string.isRequired,
+    descripcion_csv: PropTypes.string,
+    codigo_prediccion: PropTypes.string,
+    imagen: PropTypes.string,
+    rango_descripciones: PropTypes.arrayOf(PropTypes.shape({
+      CodArticle: PropTypes.string,
+      Description: PropTypes.string
+    })),
+    cantidad: PropTypes.number
+  }).isRequired,
+  onSeleccionChange: PropTypes.func.isRequired,
+  onEliminar: PropTypes.func.isRequired
+};
   const [seleccion, setSeleccion] = useState("");
 
   const manejarCambio = (event) => {
@@ -38,24 +58,24 @@ const ProductoCard = ({ producto, onSeleccionChange, onEliminar }) => {
   const opcionesOrdenadas = ordenarOpciones(producto.rango_descripciones.map((item, idx) => ({ ...item, idx })));
 
   return (
-    <div className="card m-3 border border-dark">
-      <div className="row no-gutters">
-        <div className="col-12 col-lg-2 foto-personalizada">
+    <div className="card m-3 border border-dark p-3 ">
+      <div className="row ">
+        <div className="col-12 col-lg-2 mb-1 ">
           {producto.imagen ? (
             <img
               src={`data:image/jpeg;base64,${producto.imagen}`}
-              className="card-img-top"
+              className="foto-personalizada"
               alt={`Imagen del producto ${producto.codigo_prediccion}`}
             />
           ) : (
             <img
               src="https://static.vecteezy.com/system/resources/previews/006/059/989/non_2x/crossed-camera-icon-avoid-taking-photos-image-is-not-available-illustration-free-vector.jpg"
-              className="card-img-top"
+              className="foto-personalizada"
               alt={`Imagen no disponible para el producto ${producto.codigo_prediccion}`}
             />
           )}
         </div>
-        <div className="col-12 col-md-3 centrado">
+        <div className="col-12 col-md-4 centrado">
           <h5 className="card-title">{producto.descripcion_csv}</h5>
         </div>
         <div className="col-12 col-md-3 centrado">
@@ -95,14 +115,10 @@ const ProductoCard = ({ producto, onSeleccionChange, onEliminar }) => {
             min="0"
           />
         </div>
-        <div className="col-12 col-md-2 centrado">
-          <button className="btn btn-dark ">AÑADIR</button>
-          <button onClick={() => onEliminar(producto.descripcion)} className="btn btn-danger m-1">
-            BORRAR
-          </button>
+        
         </div>
       </div>
-    </div>
+    
   );
 };
 
@@ -110,20 +126,19 @@ const ProductoCard = ({ producto, onSeleccionChange, onEliminar }) => {
 const Correos = () => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const obtenerProductos = async () => {
       try {
         const data = await fetchCorreos();
         setProductos(data);
+        setLoading(false); // Establecer loading en false solo después de obtener datos
       } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        console.error("Error al obtener los productos:", err);
+        // No establecemos loading en false aquí para que el loader continúe
+        // Opcionalmente, podrías establecer un estado de reintento o manejarlo según tus necesidades
       }
     };
-
     obtenerProductos();
   }, []);
 
@@ -161,8 +176,14 @@ const Correos = () => {
     }
   };
 
-  if (loading) return <p>Cargando productos...</p>;
-  if (error) return <p>Error: {error}</p>;
+  if (loading) {
+    return (
+      <div className="loader-container">
+        <div className="loader"></div>
+        <p>Cargando productos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container-fluid">
@@ -179,6 +200,7 @@ const Correos = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Correos;
+

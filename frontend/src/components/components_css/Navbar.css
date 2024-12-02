@@ -6,6 +6,7 @@
     width: 100%; /* Ocupa todo el ancho de la pantalla */
     z-index: 1000; /* Asegurarse de que quede por encima de otros elementos */
     padding: 0.5rem 1rem; /* Espaciado interno */
+    background-color: #283746; /* Color de fondo */
   }
   
   .navbar-custom .navbar-brand {
@@ -28,19 +29,8 @@
   
 
   .logo {
-    height: 1.8em;
+    height: 2.2em;
     margin-left: 1;
   }
 
-  .custom-button {
-    background-color: #672486;
-    color: white;
-    border: none; /* Eliminar borde si lo prefieres */
-  }
-  
-  .custom-button:hover {
-    background-color: #021c99; /* Un color más oscuro para el hover */
-  }
-
-  
   

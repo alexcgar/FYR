@@ -13,6 +13,9 @@ import pickle
 from typing import Tuple, List
 from sklearn.linear_model import SGDClassifier
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import LabelEncoder
 
 sys.path.append("backend")
 from app.correo import procesar_correos
@@ -108,14 +111,11 @@ def entrenar_modelo(X_train: List[str], y_train: List[str]) -> Tuple[SGDClassifi
 
 def modelo_predecir(descripcion: str) -> str:
     descripcion_normalizada = procesar_texto(descripcion)
-    logger.info(f"Descripción normalizada: {descripcion_normalizada}")
     if descripcion_normalizada in descripciones_confirmadas:
-        logger.info(f"Encontrado en descripciones confirmadas: {descripciones_confirmadas[descripcion_normalizada]}")
         return descripciones_confirmadas[descripcion_normalizada]
 
     descripcion_vectorizada = vectorizer.transform([descripcion_normalizada])
     prediccion = model.predict(descripcion_vectorizada)
-    logger.info(f"Predicción del modelo: {prediccion[0]}")
     return prediccion[0]
 
 
@@ -185,7 +185,7 @@ def inicializar_modelo():
         logger.info("Entrenando un nuevo modelo...")
         model, vectorizer = entrenar_modelo(X, y)
         guardar_modelo(model, vectorizer, RUTA_MODELO)
-
+    
 app = Flask(__name__)
 CORS(app)
 

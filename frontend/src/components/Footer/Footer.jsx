@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   MDBFooter,
   MDBContainer,
@@ -7,20 +6,22 @@ import {
   MDBIcon,
 } from "mdb-react-ui-kit";
 import logo from "../../assets/logo-blanco-novagric-200x146.png";
+import "../components_css/Footer.css";
 
 export default function Footer() {
   return (
-    <MDBFooter className='bg-dark text-white text-center text-lg-start'>
+    <MDBFooter className='nova text-white text-center text-lg-start mt-4'>
       <MDBContainer className='p-4'>
         <MDBRow className='align-items-center'>
           {/* Logo Column */}
-          <MDBCol lg='4' md='12' className='mb-4 mb-md-0 text-center text-lg-start'>
+          <MDBCol lg='4' md='12' className='mb-4 mb-md-0'>
+            <a href='https://novagric.com/' className='text-white me-4'>
             <img 
               src={logo} 
               alt="Logo" 
-              className='img-fluid'
-              style={{ maxHeight: '100px' }}
+              style={{ maxHeight: '200px' }}
             />
+            </a>
           </MDBCol>
 
           {/* Social Links Column */}
