@@ -21,7 +21,7 @@ def Query():
     if conn is not None:
         cur = conn.cursor()
         sql = """
-        SELECT TOP (10000)
+        SELECT TOP (15000)
             Description,
             CodArticle,
             IDArticle,

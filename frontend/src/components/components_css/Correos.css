@@ -76,3 +76,18 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+.dropdown-list {
+  max-height: 350px; /* Ajusta esta altura según tus necesidades */
+  overflow-y: auto; /* Permite el desplazamiento vertical */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  position: absolute; /* Asegura que la lista se muestre hacia abajo */
+  z-index: 1000; /* Asegura que la lista se muestre sobre otros elementos */
+}
+
+.dropdown-list .list-group-item {
+  cursor: pointer;
+}

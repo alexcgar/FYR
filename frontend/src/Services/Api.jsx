@@ -34,3 +34,13 @@ export const sendSeleccion = async (seleccion, descripcion) => {
     throw new Error("Hubo un problema al enviar la selección.");
   }
 };
+
+export const buscarProductos = async (busqueda) => {
+  try {
+    const response = await axios.post("http://localhost:5000/api/buscar", { busqueda });
+    return response.data.rango_descripciones;
+  } catch (err) {
+    console.error("Error al buscar productos:", err);
+    return []; // Devuelve un array vacío en caso de error
+  }
+};

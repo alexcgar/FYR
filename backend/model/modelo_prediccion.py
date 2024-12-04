@@ -13,9 +13,8 @@ import pickle
 from typing import Tuple, List
 from sklearn.linear_model import SGDClassifier
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import LabelEncoder
+from thefuzz import fuzz
+from thefuzz import process
 
 sys.path.append("backend")
 from app.correo import procesar_correos
@@ -36,7 +35,6 @@ SAVE_THRESHOLD = 1
 def procesar_texto(texto: str) -> str:
     try:
         texto = texto.lower()
-        # Keep Unicode word characters including accents
         texto = re.sub(r'[^\w\s]', '', texto, flags=re.UNICODE)
         palabras = texto.split()
         texto_procesado = " ".join(
@@ -118,15 +116,12 @@ def modelo_predecir(descripcion: str) -> str:
     prediccion = model.predict(descripcion_vectorizada)
     return prediccion[0]
 
-
-
 def procesar_imagen(image_data):
     if image_data.startswith("b'") and image_data.endswith("'"):
         image_data = image_data[2:-1]
     image_bytes = image_data.encode('utf-8').decode('unicode_escape').encode('latin1')
     base64_encoded = base64.b64encode(image_bytes).decode('utf-8')
     return base64_encoded
-
 
 def actualizar_modelo(descripcion: str, seleccion: str):
     global model, vectorizer, todas_las_clases, df, update_counter, descripciones_confirmadas
@@ -171,6 +166,11 @@ def obtener_rango_descripciones(codigo_prediccion: str) -> List[dict]:
                 })
     return rango_descripciones
 
+def buscar_en_csv(busqueda: str) -> List[dict]:
+    busqueda_normalizada = procesar_texto(busqueda)
+    resultados = df[df['Description_Procesada'].str.contains(busqueda_normalizada, case=False, na=False)]
+    return resultados.to_dict(orient='records')
+
 def inicializar_modelo():
     global model, vectorizer, todas_las_clases, df, descripciones_confirmadas, images
     model, vectorizer = cargar_modelo(RUTA_MODELO)
@@ -179,13 +179,12 @@ def inicializar_modelo():
     df = df_local
 
     descripciones_confirmadas = cargar_descripciones_confirmadas(RUTA_DESC_CONFIRMADAS_PKL)
-    
 
     if model is None or vectorizer is None:
         logger.info("Entrenando un nuevo modelo...")
         model, vectorizer = entrenar_modelo(X, y)
         guardar_modelo(model, vectorizer, RUTA_MODELO)
-    
+
 app = Flask(__name__)
 CORS(app)
 
@@ -215,7 +214,6 @@ def obtener_predicciones():
 
 @app.route('/api/send-seleccion', methods=['POST'])
 def recibir_seleccion():
-    print(descripciones_confirmadas)
     data = request.get_json()
     seleccion = data.get('seleccion')
     descripcion = data.get('descripcion')
@@ -230,6 +228,34 @@ def recibir_seleccion():
     except Exception as e:
         logger.error(f"Error al procesar la selección: {e}")
         return jsonify({'error': 'Error al procesar la selección.'}), 500
+
+def buscar_en_csv(busqueda, umbral=70):
+    df = pd.read_csv(RUTA_CSV)
+    busqueda_lower = busqueda.lower()
+    df['Description_lower'] = df['Description'].str.lower()
+    df['Combined'] = df['CodArticle'].astype(str) + ' - ' + df['Description']
+    lista_combinada = df['Combined'].tolist()
+    resultados = process.extract(busqueda_lower, lista_combinada, scorer=fuzz.token_set_ratio)
+    resultados_filtrados = [item[0] for item in resultados if item[1] >= umbral]
+    cod_articles = [item.split(' - ')[0] for item in resultados_filtrados]
+    resultados_df = df[df['CodArticle'].isin(cod_articles)][['CodArticle', 'Combined']].drop_duplicates()
+    resultados_dict = resultados_df.to_dict(orient='records')
+    return resultados_dict
+
+@app.route('/api/buscar', methods=['POST'])
+def buscar_productos():
+    data = request.get_json()
+    busqueda = data.get('busqueda')
+
+    if not busqueda:
+        return jsonify({'error': 'Falta la consulta de búsqueda.'}), 400
+
+    try:
+        resultados = buscar_en_csv(busqueda)
+        return jsonify({'rango_descripciones': resultados}), 200
+    except Exception as e:
+        logger.error(f"Error al buscar productos: {e}")
+        return jsonify({'error': 'Error al buscar productos.'}), 500
 
 if __name__ == "__main__":
     inicializar_modelo()

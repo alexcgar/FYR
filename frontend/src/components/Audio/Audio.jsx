@@ -71,7 +71,7 @@ function AudioPlayer() {
             src={audioUrl}
             className="w-100"
             style={{
-              height: "44px",
+              height: "86px",
               borderRadius: "10px",
             }}
           />

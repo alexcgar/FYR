@@ -1,61 +1,65 @@
-import { useState, useEffect } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useState, useEffect, useCallback } from "react";
 import PropTypes from 'prop-types';
-import { fetchCorreos, sendSeleccion } from "../../Services/Api";
+import { fetchCorreos, sendSeleccion, buscarProductos } from "../../Services/Api";
 import "../components_css/Correos.css";
+import { debounce } from "lodash";
 
+const ProductoCard = ({ producto, onSeleccionChange, onBuscar }) => {
+  const [busqueda, setBusqueda] = useState("");
+  const [opcionesBusqueda, setOpcionesBusqueda] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [controller, setController] = useState(null);
 
+  const debouncedBuscar = useCallback(
+    debounce((valorBusqueda) => {
+      manejarBusqueda(valorBusqueda);
+    }, 800),
+    []
+  );
 
+  const manejarBusqueda = async (valorBusqueda) => {
+    if (valorBusqueda.length > 0) {
+      setIsLoading(true);
+      if (controller) {
+        controller.abort();
+      }
+      const newController = new AbortController();
+      setController(newController);
 
-const ProductoCard = ({ producto, onSeleccionChange}) => {
-
-  ProductoCard.propTypes = {
-  producto: PropTypes.shape({
-    descripcion: PropTypes.string.isRequired,
-    descripcion_csv: PropTypes.string,
-    codigo_prediccion: PropTypes.string,
-    imagen: PropTypes.string,
-    rango_descripciones: PropTypes.arrayOf(PropTypes.shape({
-      CodArticle: PropTypes.string,
-      Description: PropTypes.string
-    })),
-    cantidad: PropTypes.number
-  }).isRequired,
-  onSeleccionChange: PropTypes.func.isRequired,
-  onEliminar: PropTypes.func.isRequired
-};
-  const [seleccion, setSeleccion] = useState("");
-
-  const manejarCambio = (event) => {
-    const selectedOption = event.target.value;
-    setSeleccion(selectedOption);
-    onSeleccionChange(selectedOption, producto.descripcion);
-  };
-
-  const ordenarOpciones = (opciones) => {
-    const colores = {
-      verde: 80,
-      amarillo: 60,
-      rojo: 30
-    };
-
-    return opciones.sort((a, b) => {
-      const colorA = obtenerColor(a.idx);
-      const colorB = obtenerColor(b.idx);
-      return colores[colorB] - colores[colorA];
-    });
-  };
-
-  const obtenerColor = (idx) => {
-    if (idx === 0 || idx === producto.rango_descripciones.length - 1 || idx === producto.rango_descripciones.length - 2 || idx === 1) {
-      return "verde";
-    } else if (idx === 2 || idx === producto.rango_descripciones.length - 3 || idx === producto.rango_descripciones.length - 4 || idx === 3) {
-      return "amarillo";
+      try {
+        const resultados = await onBuscar(valorBusqueda, newController.signal);
+        console.log("Resultados de la búsqueda:", resultados);
+        if (Array.isArray(resultados)) {
+          setOpcionesBusqueda(resultados.slice(0, 10)); // Limitar a 10 resultados
+        } else {
+          console.error("Los resultados de la búsqueda no son un array:", resultados);
+          setOpcionesBusqueda([]);
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error("Error al buscar productos:", err);
+        }
+        setOpcionesBusqueda([]);
+      } finally {
+        setIsLoading(false);
+      }
     } else {
-      return "rojo";
+      setOpcionesBusqueda([]);
     }
   };
 
-  const opcionesOrdenadas = ordenarOpciones(producto.rango_descripciones.map((item, idx) => ({ ...item, idx })));
+  const manejarSeleccion = (item) => {
+    setBusqueda(item.Combined);
+    setOpcionesBusqueda([]);
+    onSeleccionChange(item.CodArticle, producto.descripcion);
+  };
+
+  const handleInputChange = (event) => {
+    const valorBusqueda = event.target.value;
+    setBusqueda(valorBusqueda);
+    debouncedBuscar(valorBusqueda);
+  };
 
   return (
     <div className="card m-3 border border-dark p-3 ">
@@ -79,49 +83,65 @@ const ProductoCard = ({ producto, onSeleccionChange}) => {
           <h5 className="card-title">{producto.descripcion_csv}</h5>
         </div>
         <div className="col-12 col-md-3 centrado">
-          <p>
-            <strong>Descripción:</strong> {producto.descripcion}
-          </p>
-          <p>
-            <strong>Código Artículo:</strong> {producto.codigo_prediccion}
-          </p>
+          <div>
+            <strong><span>Descripción:</span></strong> {producto.descripcion}
+          </div>
+          <div>
+            <strong><span>Código Artículo:</span></strong> {producto.codigo_prediccion}
+          </div>
         </div>
         <div className="col-12 col-md-2  centrado">
-          <p>
-            <strong>Cambiar producto:</strong>
-          </p>
-          <select
+          <div>
+            <strong><span>Buscar producto:</span></strong>
+          </div>
+          <input
+            type="text"
             className="form-control"
-            onChange={manejarCambio}
-            value={seleccion}
-          >
-            <option value="">Seleccionar</option>
-            {opcionesOrdenadas.map((item) => {
-              const color = obtenerColor(item.idx);
-              const porcentaje = color === "verde" ? 80 : color === "amarillo" ? 60 : 30;
-              const className = `option-${color}`;
-              return (
-                <option key={`${item.CodArticle}-${item.idx}`} value={item.CodArticle} className={className}>
-                  {item.CodArticle} - {item.Description}   ({porcentaje}%)
-                </option>
-              );
-            })}
-          </select>
-
+            placeholder="Buscar..."
+            value={busqueda}
+            onChange={handleInputChange}
+          />
+          {isLoading && <div>Cargando...</div>}
+          {opcionesBusqueda.length > 0 && (
+            <ul className="list-group mt-2 dropdown-list">
+              {opcionesBusqueda.map((item) => (
+                <li
+                  key={item.CodArticle}
+                  className="list-group-item list-group-item-action"
+                  onClick={() => manejarSeleccion(item)}
+                >
+                  {item.Combined}
+                </li>
+              ))}
+            </ul>
+          )}
           <input title="Cantidad"
             type="number"
             className="form-control mt-2"
-            defaultValue={producto.cantidad}
+            defaultValue={Number(producto.cantidad)}
             min="0"
           />
         </div>
-        
-        </div>
       </div>
-    
+    </div>
   );
 };
 
+ProductoCard.propTypes = {
+  producto: PropTypes.shape({
+    descripcion: PropTypes.string.isRequired,
+    descripcion_csv: PropTypes.string,
+    codigo_prediccion: PropTypes.string,
+    imagen: PropTypes.string,
+    rango_descripciones: PropTypes.arrayOf(PropTypes.shape({
+      CodArticle: PropTypes.string,
+      Description: PropTypes.string
+    })),
+    cantidad: PropTypes.number
+  }).isRequired,
+  onSeleccionChange: PropTypes.func.isRequired,
+  onBuscar: PropTypes.func.isRequired,
+};
 
 const Correos = () => {
   const [productos, setProductos] = useState([]);
@@ -131,12 +151,18 @@ const Correos = () => {
     const obtenerProductos = async () => {
       try {
         const data = await fetchCorreos();
-        setProductos(data);
-        setLoading(false); // Establecer loading en false solo después de obtener datos
+        if (Array.isArray(data)) {
+          const productosConCantidadNumerica = data.map(producto => ({
+            ...producto,
+            cantidad: Number(producto.cantidad)
+          }));
+          setProductos(productosConCantidadNumerica);
+        } else {
+          console.error("Los datos recibidos no son un array:", data);
+        }
+        setLoading(false);
       } catch (err) {
         console.error("Error al obtener los productos:", err);
-        // No establecemos loading en false aquí para que el loader continúe
-        // Opcionalmente, podrías establecer un estado de reintento o manejarlo según tus necesidades
       }
     };
     obtenerProductos();
@@ -145,34 +171,28 @@ const Correos = () => {
   const manejarSeleccionChange = async (selectedOption, descripcion) => {
     try {
       await sendSeleccion(selectedOption, descripcion);
-
-      // Refrescar los productos desde el backend
       const dataActualizada = await fetchCorreos();
-      setProductos(dataActualizada);
+      if (Array.isArray(dataActualizada)) {
+        const productosConCantidadNumerica = dataActualizada.map(producto => ({
+          ...producto,
+          cantidad: Number(producto.cantidad)
+        }));
+        setProductos(productosConCantidadNumerica);
+      } else {
+        console.error("Los datos actualizados no son un array:", dataActualizada);
+      }
     } catch (err) {
       console.error("Error al enviar la selección:", err);
     }
   };
 
-  const manejarEliminar = async (descripcion) => {
+  const manejarBuscar = async (busqueda, signal) => {
     try {
-      const response = await fetch('/api/eliminar-producto', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ descripcion })
-      });
-
-      if (response.ok) {
-        // Refrescar los productos desde el backend
-        const dataActualizada = await fetchCorreos();
-        setProductos(dataActualizada);
-      } else {
-        console.error('Error al eliminar el producto:', response.statusText);
-      }
+      const resultados = await buscarProductos(busqueda, signal);
+      return resultados;
     } catch (err) {
-      console.error('Error al eliminar el producto:', err);
+      console.error("Error al buscar productos:", err);
+      return [];
     }
   };
 
@@ -193,7 +213,7 @@ const Correos = () => {
             <ProductoCard
               producto={producto}
               onSeleccionChange={manejarSeleccionChange}
-              onEliminar={manejarEliminar}
+              onBuscar={manejarBuscar}
             />
           </div>
         ))}
@@ -203,4 +223,3 @@ const Correos = () => {
 }
 
 export default Correos;
-
