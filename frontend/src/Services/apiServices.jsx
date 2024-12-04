@@ -30,7 +30,6 @@ export const getWorkOrderInfo = async (workOrderId, employeeId) => {
     }
    
     const token = authResponse.data.replace(/'/g, '');
-   console.log(token);
     
     // Solicitud a la API con el token
     const response = await axios.post(

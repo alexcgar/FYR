@@ -1,72 +1,37 @@
-import { useRef, useState } from "react";
-import {
-  MDBBtn,
-  MDBCard,
-  MDBCardBody,
-  MDBIcon,
-  MDBSpinner,
-} from "mdb-react-ui-kit";
+import { useState } from "react";
+import { MDBBtn, MDBCard, MDBCardBody, MDBIcon } from "mdb-react-ui-kit";
 import "../components_css/Audio.css";
+import axios from 'axios';
 
 function AudioPlayer() {
-  const audioRef = useRef(null);
   const [audioUrl, setAudioUrl] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
 
-  const startRecording = () => {
-    navigator.mediaDevices
-      .getUserMedia({ audio: true })
-      .then((stream) => {
-        const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorderRef.current = mediaRecorder;
-        audioChunksRef.current = [];
+  const handleDownload = () => {
+    axios.get('http://localhost:5000/api/getAudio', { responseType: 'blob' })
+      .then(response => {
+        const audioBlob = new Blob([response.data], { type: 'audio/mp3' });
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
 
-        mediaRecorder.ondataavailable = (event) => {
-          audioChunksRef.current.push(event.data);
-        };
-
-        mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, {
-            type: "audio/wav",
-          });
-          const url = URL.createObjectURL(audioBlob);
-          setAudioUrl(url);
-          audioRef.current.src = url;
-        };
-
-        mediaRecorder.start();
-        setIsRecording(true);
-
-        // setTimeout(() => {
-        //   mediaRecorder.stop();
-        //   setIsRecording(false);
-        // }, 10000000);   Cambia este valor para ajustar la duración de la grabación
+        // Crear un enlace temporal para descargar el archivo
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'audio.mp3');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       })
-      .catch((error) => {
-        console.error("Error accessing microphone:", error);
+      .catch(error => {
+        console.error('Error fetching audio:', error);
       });
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
-  const handleSend = () => {
-    // Aquí puedes agregar la lógica para enviar el audio grabado
-    console.log("Enviando audio:", audioUrl);
-  };
-
   return (
-    <MDBCard className=" text-white">
-      <MDBCardBody className="nova rounded-4">
-        <h3 className=" mb-5">Realizar Pedido</h3>
+    <MDBCard className="text-white">
+      <MDBCardBody className="nova2 rounded-4">
+        <h3 className="mb-5">Reproducir Audio</h3>
         <div className="mb-4">
           <audio
-            ref={audioRef}
             controls
             src={audioUrl}
             className="w-100"
@@ -76,33 +41,14 @@ function AudioPlayer() {
             }}
           />
         </div>
-        <div className="d-flex  gap-3">
-          <MDBBtn
-            color=" text-white border border-white"
-            onClick={isRecording ? stopRecording : startRecording}
-            
-          >
-            <MDBIcon
-              fas
-              icon={isRecording ? "stop" : "microphone"}
-              className="me-2"
-            />
-            {isRecording ? (
-              <>
-                Grabando
-                <MDBSpinner size="sm" className="ms-2" />
-              </>
-            ) : (
-              "Iniciar Grabación"
-            )}
-          </MDBBtn>
+        <div className="d-flex gap-3">
           <MDBBtn
             color="text-white border border-white"
-            onClick={handleSend}
-            disabled={!audioUrl || isRecording}
+            onClick={handleDownload}
+            disabled={audioUrl}
           >
-            <MDBIcon fas icon="paper-plane" className="me-2" />
-            Enviar
+            <MDBIcon fas icon="download" className="me-2" />
+            Descargar
           </MDBBtn>
         </div>
       </MDBCardBody>

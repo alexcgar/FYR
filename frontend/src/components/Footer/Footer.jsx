@@ -10,11 +10,11 @@ import "../components_css/Footer.css";
 
 export default function Footer() {
   return (
-    <MDBFooter className='nova text-white text-center text-lg-start mt-4'>
-      <MDBContainer className='p-4'>
+    <MDBFooter className='nova text-white text-center mt-4 '>
+      <MDBContainer className='p-5'>
         <MDBRow className='align-items-center'>
           {/* Logo Column */}
-          <MDBCol lg='4' md='12' className='mb-4 mb-md-0'>
+          <MDBCol lg='4' md='12' className='mb-1 '>
             <a href='https://novagric.com/' className='text-white me-4'>
             <img 
               src={logo} 
@@ -41,7 +41,7 @@ export default function Footer() {
           </MDBCol>
 
           {/* Company Info Column */}
-          <MDBCol lg='4' md='12' className='mb-4 mb-md-0 text-center text-lg-end'>
+          <MDBCol lg='4' md='11' className='mb-4 mb-md-0 text-center text-lg-end'>
             <h6 className='text-uppercase fw-bold mb-4'>
               <MDBIcon icon='gem' className='me-3' />
               Company name

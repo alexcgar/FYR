@@ -76,18 +76,21 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-.dropdown-list {
-  max-height: 350px; /* Ajusta esta altura según tus necesidades */
-  overflow-y: auto; /* Permite el desplazamiento vertical */
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-  position: absolute; /* Asegura que la lista se muestre hacia abajo */
-  z-index: 1000; /* Asegura que la lista se muestre sobre otros elementos */
+
+.dropdown-container {
+  width: 100%;
 }
 
-.dropdown-list .list-group-item {
-  cursor: pointer;
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 300px; /* Ajusta según necesites */
+  overflow-y: auto;
+  z-index: 1000; /* Asegura que la lista se superponga a otros elementos */
+  background-color: #ffffff; /* Fondo blanco para la lista */
+  border: 1px solid #ced4da; /* Borde similar al input */
+  border-top: none; /* Elimina el borde superior para conexión suave con el input */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para destacar la lista */
 }

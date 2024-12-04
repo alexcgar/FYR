@@ -6,28 +6,32 @@ import logging
 import json
 import re
 import pandas as pd
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pickle
 from typing import Tuple, List
 from sklearn.linear_model import SGDClassifier
-import numpy as np
 from thefuzz import fuzz
 from thefuzz import process
 
 sys.path.append("backend")
-from app.correo import procesar_correos
+from app.correo import procesar_correos, descargar_audio_desde_correo
+
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 RUTA_MODELO = "backend/model/modelo_actualizado.pkl"
 RUTA_CSV = "backend/model/consulta_resultado.csv"
-STOP_WORDS = ['de', 'la', 'que', 'en', 'y', 'con', 'los', 'del', 'se', 'las', 'por', 'un', 'para', 'una', 'no', 'al', 'lo', 'como', 'más', 'sus', 'su']
+STOP_WORDS = ['de', 'la', 'que', 'en', 'y', 'con', 'los', 'del', 'se', 'las', 'por', 'un', 'para', 'una', 'no', 'al', 'lo', 'como', 'más', 'sus', 'su', 'ø']
 RUTA_DESC_CONFIRMADAS_PKL = "backend/model/descripciones_confirmadas.pkl"
 RUTA_DESC_CONFIRMADAS_JSON = "backend/model/descripciones_confirmadas.json"
+CARPETA_AUDIOS = "backend/model/audios"
 
+
+    
 lock = threading.Lock()
 update_counter = 0
 SAVE_THRESHOLD = 1
@@ -35,7 +39,9 @@ SAVE_THRESHOLD = 1
 def procesar_texto(texto: str) -> str:
     try:
         texto = texto.lower()
-        texto = re.sub(r'[^\w\s]', '', texto, flags=re.UNICODE)
+        texto = re.sub(r'[^\w\s]', '', texto, flags=re.UNICODE) 
+        texto = re.sub(r'\b(\w+)(es|s)\b', r'\1', texto)
+        texto = texto.replace('ø', '')
         palabras = texto.split()
         texto_procesado = " ".join(
             [palabra for palabra in palabras if palabra not in STOP_WORDS]
@@ -191,6 +197,7 @@ CORS(app)
 @app.route('/api/predicciones', methods=['GET'])
 def obtener_predicciones():
     productos = procesar_correos()
+    
     predicciones = []
     for producto in productos:
         cantidad = producto.split()[-1]
@@ -235,7 +242,9 @@ def buscar_en_csv(busqueda, umbral=70):
     df['Description_lower'] = df['Description'].str.lower()
     df['Combined'] = df['CodArticle'].astype(str) + ' - ' + df['Description']
     lista_combinada = df['Combined'].tolist()
-    resultados = process.extract(busqueda_lower, lista_combinada, scorer=fuzz.token_set_ratio)
+    
+    # Utilizar fuzz.partial_ratio para mejorar las coincidencias parciales
+    resultados = process.extract(busqueda_lower, lista_combinada, scorer=fuzz.partial_ratio)
     resultados_filtrados = [item[0] for item in resultados if item[1] >= umbral]
     cod_articles = [item.split(' - ')[0] for item in resultados_filtrados]
     resultados_df = df[df['CodArticle'].isin(cod_articles)][['CodArticle', 'Combined']].drop_duplicates()
@@ -256,6 +265,32 @@ def buscar_productos():
     except Exception as e:
         logger.error(f"Error al buscar productos: {e}")
         return jsonify({'error': 'Error al buscar productos.'}), 500
+    
+if not os.path.exists(CARPETA_AUDIOS):
+    os.makedirs(CARPETA_AUDIOS)
+
+@app.route('/api/getAudio', methods=['GET'])
+def get_audio():
+    carpeta_destino = r"C:\Users\acaparros\Desktop\F+R\backend\model\audios"  # Reemplaza con la ruta deseada
+    ruta_audio = descargar_audio_desde_correo(carpeta_destino)
+    
+    if ruta_audio:
+        logger.info(f"Archivo de audio descargado en: {ruta_audio}")
+        try:
+            return send_file(
+                ruta_audio,
+                mimetype='audio/mpeg',
+                as_attachment=True,
+                download_name='audio.mp3'  # Puedes ajustar el nombre del archivo según sea necesario
+            )
+        except Exception as e:
+            logger.error(f"Error al enviar el archivo: {e}")
+            return jsonify({'error': 'Error al enviar el archivo de audio.'}), 500
+    else:
+        logger.info("No se encontró ningún archivo de audio para descargar.")
+        return jsonify({'error': 'No se encontró ningún archivo de audio para descargar.'}), 404
+
+
 
 if __name__ == "__main__":
     inicializar_modelo()

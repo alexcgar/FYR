@@ -1,7 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect, useCallback } from "react";
-import PropTypes from 'prop-types';
-import { fetchCorreos, sendSeleccion, buscarProductos } from "../../Services/Api";
+import PropTypes from "prop-types";
+import {
+  fetchCorreos,
+  sendSeleccion,
+  buscarProductos,
+} from "../../Services/Api";
 import "../components_css/Correos.css";
 import { debounce } from "lodash";
 
@@ -33,11 +37,14 @@ const ProductoCard = ({ producto, onSeleccionChange, onBuscar }) => {
         if (Array.isArray(resultados)) {
           setOpcionesBusqueda(resultados.slice(0, 10)); // Limitar a 10 resultados
         } else {
-          console.error("Los resultados de la búsqueda no son un array:", resultados);
+          console.error(
+            "Los resultados de la búsqueda no son un array:",
+            resultados
+          );
           setOpcionesBusqueda([]);
         }
       } catch (err) {
-        if (err.name !== 'AbortError') {
+        if (err.name !== "AbortError") {
           console.error("Error al buscar productos:", err);
         }
         setOpcionesBusqueda([]);
@@ -84,38 +91,49 @@ const ProductoCard = ({ producto, onSeleccionChange, onBuscar }) => {
         </div>
         <div className="col-12 col-md-3 centrado">
           <div>
-            <strong><span>Descripción:</span></strong> {producto.descripcion}
+            <strong>
+              <span>Descripción:</span>
+            </strong>{" "}
+            {producto.descripcion}
           </div>
           <div>
-            <strong><span>Código Artículo:</span></strong> {producto.codigo_prediccion}
+            <strong>
+              <span>Código Artículo:</span>
+            </strong>{" "}
+            {producto.codigo_prediccion}
           </div>
         </div>
-        <div className="col-12 col-md-2  centrado">
+        <div className="col-12 col-md-3  centrado">
           <div>
-            <strong><span>Buscar producto:</span></strong>
+            <strong>
+              <span>Buscar producto:</span>
+            </strong>
+          </div>
+          <div className="dropdown-container position-relative">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Buscar..."
+              value={busqueda}
+              onChange={handleInputChange}
+            />
+            {isLoading && <div>Cargando...</div>}
+            {opcionesBusqueda.length > 0 && (
+              <ul className="list-group mt-2 dropdown-list" >
+                {opcionesBusqueda.map((item) => (
+                  <li
+                    key={item.CodArticle}
+                    className="list-group-item list-group-item-action bg-dark text-white p-4"
+                    onClick={() => manejarSeleccion(item)}
+                  >
+                    {item.Combined}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <input
-            type="text"
-            className="form-control"
-            placeholder="Buscar..."
-            value={busqueda}
-            onChange={handleInputChange}
-          />
-          {isLoading && <div>Cargando...</div>}
-          {opcionesBusqueda.length > 0 && (
-            <ul className="list-group mt-2 dropdown-list">
-              {opcionesBusqueda.map((item) => (
-                <li
-                  key={item.CodArticle}
-                  className="list-group-item list-group-item-action"
-                  onClick={() => manejarSeleccion(item)}
-                >
-                  {item.Combined}
-                </li>
-              ))}
-            </ul>
-          )}
-          <input title="Cantidad"
+            title="Cantidad"
             type="number"
             className="form-control mt-2"
             defaultValue={Number(producto.cantidad)}
@@ -133,11 +151,13 @@ ProductoCard.propTypes = {
     descripcion_csv: PropTypes.string,
     codigo_prediccion: PropTypes.string,
     imagen: PropTypes.string,
-    rango_descripciones: PropTypes.arrayOf(PropTypes.shape({
-      CodArticle: PropTypes.string,
-      Description: PropTypes.string
-    })),
-    cantidad: PropTypes.number
+    rango_descripciones: PropTypes.arrayOf(
+      PropTypes.shape({
+        CodArticle: PropTypes.string,
+        Description: PropTypes.string,
+      })
+    ),
+    cantidad: PropTypes.number,
   }).isRequired,
   onSeleccionChange: PropTypes.func.isRequired,
   onBuscar: PropTypes.func.isRequired,
@@ -152,9 +172,9 @@ const Correos = () => {
       try {
         const data = await fetchCorreos();
         if (Array.isArray(data)) {
-          const productosConCantidadNumerica = data.map(producto => ({
+          const productosConCantidadNumerica = data.map((producto) => ({
             ...producto,
-            cantidad: Number(producto.cantidad)
+            cantidad: Number(producto.cantidad),
           }));
           setProductos(productosConCantidadNumerica);
         } else {
@@ -173,13 +193,18 @@ const Correos = () => {
       await sendSeleccion(selectedOption, descripcion);
       const dataActualizada = await fetchCorreos();
       if (Array.isArray(dataActualizada)) {
-        const productosConCantidadNumerica = dataActualizada.map(producto => ({
-          ...producto,
-          cantidad: Number(producto.cantidad)
-        }));
+        const productosConCantidadNumerica = dataActualizada.map(
+          (producto) => ({
+            ...producto,
+            cantidad: Number(producto.cantidad),
+          })
+        );
         setProductos(productosConCantidadNumerica);
       } else {
-        console.error("Los datos actualizados no son un array:", dataActualizada);
+        console.error(
+          "Los datos actualizados no son un array:",
+          dataActualizada
+        );
       }
     } catch (err) {
       console.error("Error al enviar la selección:", err);
@@ -206,10 +231,13 @@ const Correos = () => {
   }
 
   return (
-    <div className="container-fluid">
+    
       <div className="row">
         {productos.map((producto, index) => (
-          <div className="col-12 col-md-12" key={`${producto.codigo_prediccion}-${index}`}>
+          <div
+            className="col-12 col-md-12"
+            key={`${producto.codigo_prediccion}-${index}`}
+          >
             <ProductoCard
               producto={producto}
               onSeleccionChange={manejarSeleccionChange}
@@ -218,8 +246,8 @@ const Correos = () => {
           </div>
         ))}
       </div>
-    </div>
+    
   );
-}
+};
 
 export default Correos;

@@ -5,8 +5,9 @@
     left: 0; /* Alineado al borde izquierdo */
     width: 100%; /* Ocupa todo el ancho de la pantalla */
     z-index: 1000; /* Asegurarse de que quede por encima de otros elementos */
-    padding: 0.5rem 1rem; /* Espaciado interno */
     background-color: #283746; /* Color de fondo */
+    padding: 0 15px; /* Añadir padding a los lados para evitar desbordamiento */
+
   }
   
   .navbar-custom .navbar-brand {
@@ -30,7 +31,8 @@
 
   .logo {
     height: 2.2em;
-    margin-left: 1;
+    margin-left: 1.5em;
   }
-
-  
+  .container, .container-fluid, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+    --bs-gutter-x: unset;
+}

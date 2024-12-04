@@ -39,7 +39,7 @@ const Employee = () => {
         ) : (
           !error && <Card.Text>Cargando información del empleado...</Card.Text>
         )}
-        <Button variant="dark border border-white">Completar pedido</Button>
+        <Button variant="dark border border-white">GENERAR PEDIDO</Button>
       </Card.Body>
     </Card>
   );
