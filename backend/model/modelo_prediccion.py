@@ -213,7 +213,10 @@ def obtener_predicciones():
 
         # Calcular la exactitud de la predicción
         descripcion_procesada = procesar_texto(producto)
-        exactitud = fuzz.token_set_ratio(descripcion_procesada, df.loc[df['CodArticle'] == codigo_prediccion, 'Description_Procesada'].iloc[0]) if codigo_prediccion in df['CodArticle'].values else 0
+        if descripcion_procesada in descripciones_confirmadas:
+            exactitud = 100
+        else:
+            exactitud = fuzz.token_set_ratio(descripcion_procesada, df.loc[df['CodArticle'] == codigo_prediccion, 'Description_Procesada'].iloc[0]) if codigo_prediccion in df['CodArticle'].values else 0
         
         predicciones.append({
             'descripcion': producto.upper(),

@@ -35,10 +35,8 @@ def procesar_correos():
         productos = []
 
         for message in messages:
-            if message.UnRead:  # Verificar si el mensaje no ha sido leído
                 cuerpo = message.Body
                 productos.extend(extract_body_message(cuerpo))
-                message.UnRead = False  # Marcar el mensaje como leído
 
         return productos
     finally:
@@ -55,7 +53,6 @@ def descargar_audio_desde_correo(carpeta_destino):
         audio_path = None
 
         for message in messages:
-            if message.UnRead:  # Verificar si el mensaje no ha sido leído
                 if message.Attachments.Count > 0:
                     for attachment in message.Attachments:
                         if attachment.FileName.lower().endswith('.mp3'):

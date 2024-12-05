@@ -1,85 +1,101 @@
 import { useState } from "react";
-import { MDBBtn, MDBCard, MDBCardBody, MDBIcon } from "mdb-react-ui-kit";
+import { Button, Collapse, Table } from "react-bootstrap";
+import axios from "axios";
 import "../components_css/Audio.css";
-import axios from 'axios';
+import CustomAudioPlayer from "../ReproductorAudio/ReproductorAudio";
 
 function AudioPlayer() {
   const [audioUrl, setAudioUrl] = useState("");
+  const [open, setOpen] = useState(false); // Estado para manejar el despliegue del div completo
 
   const handleDownload = () => {
-    axios.get('http://localhost:5000/api/getAudio', { responseType: 'blob' })
-      .then(response => {
-        const audioBlob = new Blob([response.data], { type: 'audio/mp3' });
+    axios
+      .get("http://localhost:5000/api/getAudio", { responseType: "blob" })
+      .then((response) => {
+        const audioBlob = new Blob([response.data], { type: "audio/mp3" });
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
 
         // Crear un enlace temporal para descargar el archivo
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = url;
-        link.setAttribute('download', 'audio.mp3');
+        link.setAttribute("download", "audio.mp3");
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       })
-      .catch(error => {
-        console.error('Error fetching audio:', error);
+      .catch((error) => {
+        console.error("Error fetching audio:", error);
       });
   };
+
   const handleFetchAudio = () => {
-    axios.get('http://localhost:5000/api/getAudio', { responseType: 'blob' })
-      .then(response => {
-        const audioBlob = new Blob([response.data], { type: 'audio/mp3' });
+    axios
+      .get("http://localhost:5000/api/getAudio", { responseType: "blob" })
+      .then((response) => {
+        const audioBlob = new Blob([response.data], { type: "audio/mp3" });
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
       })
-      .catch(error => {
-        console.error('Error fetching audio:', error);
+      .catch((error) => {
+        console.error("Error fetching audio:", error);
       });
   };
-  
 
   return (
-    <MDBCard className="text-white">
-      <MDBCardBody className="nova2 rounded-4">
-        <h1 className="mb-5">Reproducir Audio</h1>
-        <div className="mb-4">
-          <audio
-            controls
-            src={audioUrl}
-            className="w-100"
-            style={{
-              height: "103px",
-              borderRadius: "10px",
-            }}
-          />
+    <div className="text-white w-100">
+      <Button
+        variant="dark"
+        className="mb-3 nova2 w-100"
+        onClick={() => setOpen(!open)} // Toggle para abrir y cerrar el contenido completo
+        style={{ backgroundColor: "#283746" }} // Estilo en línea con el color especificado
+      >
+        {open ? "Cerrar Detalles" : "Ver Detalles del Audio"}
+      </Button>
+
+      <Collapse in={open}>
+        <div>
+          {/* Tabla con contenido del reproductor y acciones */}
+          <Table bordered  variant="dark" className="mb-0">
+            <thead>
+              <tr>
+                <th>REPRODUCTOR DE AUDIO</th>
+                <th>ACCIONES</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style={{ width: "70%" }}> {/* Aumenta el ancho de la celda del reproductor */}
+                  <CustomAudioPlayer audioUrl={audioUrl} />
+                </td>
+                <td style={{ width: "30%" }}> {/* Ancho más pequeño para las acciones */}
+                  {/* Botones de acciones */}
+                  <div className="d-flex gap-3">
+                  <Button
+                      variant="dark"
+                      className="border border-white"
+                      onClick={handleFetchAudio}
+                    >
+                      Obtener Audio
+                    </Button>
+                    <Button
+                      variant="dark"
+                      className="border border-white"
+                      onClick={handleDownload}
+                      disabled={!audioUrl}
+                    >
+                      Descargar
+                    </Button>
+                    
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </Table>
         </div>
-        <div className="d-flex gap-3">
-          <div className="d-flex gap-3">
-            <MDBBtn
-              color="text-white border border-white"
-              onClick={handleDownload}
-              disabled={!audioUrl}
-              style={{ color: 'white' }}
-            >
-              <MDBIcon fas icon="download" className="me-2" />
-              Descargar
-            </MDBBtn>
-          </div>
-          <div className="d-flex gap-3">
-            <MDBBtn
-              color="text-white border border-white"
-              onClick={handleFetchAudio}
-              style={{ color: 'white' }}
-            >
-              <MDBIcon fas icon="cloud-download-alt" className="me-2" />
-              Obtener Audio
-            </MDBBtn>
-          </div>
-        </div>
-      </MDBCardBody>
-    </MDBCard>
+      </Collapse>
+    </div>
   );
 }
 
 export default AudioPlayer;
-

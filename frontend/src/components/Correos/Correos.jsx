@@ -1,6 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useEffect, useCallback } from "react";
-import PropTypes from "prop-types";
+import { useState, useEffect } from "react";
 import {
   fetchCorreos,
   sendSeleccion,
@@ -9,175 +7,12 @@ import {
 import "../components_css/Correos.css";
 import { debounce } from "lodash";
 
-const ProductoCard = ({ producto, onSeleccionChange, onBuscar }) => {
-  const [busqueda, setBusqueda] = useState("");
-  const [opcionesBusqueda, setOpcionesBusqueda] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [controller, setController] = useState(null);
-
-  const debouncedBuscar = useCallback(
-    debounce((valorBusqueda) => {
-      manejarBusqueda(valorBusqueda);
-    }, 800),
-    []
-  );
-
-  const manejarBusqueda = async (valorBusqueda) => {
-    if (valorBusqueda.length > 0) {
-      setIsLoading(true);
-      if (controller) {
-        controller.abort();
-      }
-      const newController = new AbortController();
-      setController(newController);
-
-      try {
-        const resultados = await onBuscar(valorBusqueda, newController.signal);
-        console.log("Resultados de la búsqueda:", resultados);
-        if (Array.isArray(resultados)) {
-          setOpcionesBusqueda(resultados.slice(0, 10));
-        } else {
-          console.error(
-            "Los resultados de la búsqueda no son un array:",
-            resultados
-          );
-          setOpcionesBusqueda([]);
-        }
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Error al buscar productos:", err);
-        }
-        setOpcionesBusqueda([]);
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      setOpcionesBusqueda([]);
-    }
-  };
-
-  const manejarSeleccion = (item) => {
-    setBusqueda(item.Combined);
-    setOpcionesBusqueda([]);
-    onSeleccionChange(item.CodArticle, producto.descripcion);
-  };
-
-  const handleInputChange = (event) => {
-    const valorBusqueda = event.target.value;
-    setBusqueda(valorBusqueda);
-    debouncedBuscar(valorBusqueda);
-  };
-
-  const exactitud = Number(producto.exactitud);
-  let exactitudColor = "black";
-  if (exactitud > 60) {
-    exactitudColor = "#4caf50"; // green
-  } else if (exactitud > 40 && exactitud < 60) {
-    exactitudColor = "#ffeb3b"; // yellow
-  } else if (exactitud <= 40) {
-    exactitudColor = "#f44336"; // red
-  }
-
-  return (
-    <div className="card m-3 border border-dark p-3" style={{ background: exactitudColor }}>
-      <div className="row">
-        <div className="col-12 col-lg-2 mb-1">
-          {producto.imagen ? (
-            <img
-              src={`data:image/jpeg;base64,${producto.imagen}`}
-              className="foto-personalizada"
-              alt={`Imagen del producto ${producto.codigo_prediccion}`}
-            />
-          ) : (
-            <img
-              src="https://static.vecteezy.com/system/resources/previews/006/059/989/non_2x/crossed-camera-icon-avoid-taking-photos-image-is-not-available-illustration-free-vector.jpg"
-              className="foto-personalizada"
-              alt={`Imagen no disponible para el producto ${producto.codigo_prediccion}`}
-            />
-          )}
-        </div>
-        <div className="col-12 col-md-4 centrado">
-          <h5 className="card-title">{producto.descripcion_csv}{producto.exactitud}%</h5>
-         
-        </div>
-        <div className="col-12 col-md-3 centrado">
-          <div>
-            <strong>
-              <span>Descripción:</span>
-            </strong>{" "}
-            {producto.descripcion}
-          </div>
-          <div>
-            <strong>
-              <span>Código Artículo:</span>
-            </strong>{" "}
-            {producto.codigo_prediccion}
-          </div>
-        </div>
-        <div className="col-12 col-md-3 centrado">
-          <div>
-            <strong>
-              <span>Buscar producto:</span>
-            </strong>
-          </div>
-          <div className="dropdown-container position-relative">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Buscar..."
-              value={busqueda}
-              onChange={handleInputChange}
-            />
-            {isLoading && <div>Cargando...</div>}
-            {opcionesBusqueda.length > 0 && (
-              <ul className="list-group mt-2 dropdown-list">
-                {opcionesBusqueda.map((item) => (
-                  <li
-                    key={item.CodArticle}
-                    className="list-group-item list-group-item-action bg-dark text-white p-4"
-                    onClick={() => manejarSeleccion(item)}
-                  >
-                    {item.Combined}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <input
-            title="Cantidad"
-            type="number"
-            className="form-control mt-2"
-            defaultValue={Number(producto.cantidad)}
-            min="0"
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-ProductoCard.propTypes = {
-  producto: PropTypes.shape({
-    descripcion: PropTypes.string.isRequired,
-    descripcion_csv: PropTypes.string,
-    codigo_prediccion: PropTypes.string,
-    imagen: PropTypes.string,
-    exactitud: PropTypes.string,
-    rango_descripciones: PropTypes.arrayOf(
-      PropTypes.shape({
-        CodArticle: PropTypes.string,
-        Description: PropTypes.string,
-      })
-    ),
-    cantidad: PropTypes.number,
-  }).isRequired,
-  onSeleccionChange: PropTypes.func.isRequired,
-  onBuscar: PropTypes.func.isRequired,
-};
-
 const Correos = () => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busquedas, setBusquedas] = useState({});
+  const [opcionesBusqueda, setOpcionesBusqueda] = useState({});
+  const [isLoadingBusqueda, setIsLoadingBusqueda] = useState({});
 
   useEffect(() => {
     const obtenerProductos = async () => {
@@ -223,16 +58,32 @@ const Correos = () => {
     }
   };
 
-  const manejarBuscar = async (busqueda, signal) => {
-    try {
-      const resultados = await buscarProductos(busqueda, signal);
-      return resultados;
-    } catch (err) {
-      console.error("Error al buscar productos:", err);
-      return [];
+  const manejarBuscar = debounce(async (valorBusqueda, productoId) => {
+    if (valorBusqueda.length > 0) {
+      setIsLoadingBusqueda((prev) => ({ ...prev, [productoId]: true }));
+      try {
+        const resultados = await buscarProductos(valorBusqueda);
+        setOpcionesBusqueda((prev) => ({
+          ...prev,
+          [productoId]: resultados.slice(0, 10),
+        }));
+      } catch (err) {
+        console.error("Error al buscar productos:", err);
+      } finally {
+        setIsLoadingBusqueda((prev) => ({ ...prev, [productoId]: false }));
+      }
+    } else {
+      setOpcionesBusqueda((prev) => ({ ...prev, [productoId]: [] }));
     }
+  }, 800);
+  
+  const manejarInputBusqueda = (valor, productoId) => {
+    setBusquedas((prev) => ({
+      ...prev,
+      [productoId]: valor,
+    }));
+    manejarBuscar(valor, productoId);
   };
-
   if (loading) {
     return (
       <div className="loader-container">
@@ -243,19 +94,108 @@ const Correos = () => {
   }
 
   return (
-    <div className="row">
-      {productos.map((producto, index) => (
-        <div
-          className="col-12 col-md-12"
-          key={`${producto.codigo_prediccion}-${index}`}
-        >
-          <ProductoCard
-            producto={producto}
-            onSeleccionChange={manejarSeleccionChange}
-            onBuscar={manejarBuscar}
-          />
-        </div>
-      ))}
+    <div className="container-fluid  ">
+    <div className="table-responsive bg-white">
+      <table className="table table-striped table-bordered border border-5">
+        <thead className="thead-dark">
+          <tr>
+            <th>Imagen</th>
+            <th>Descripción Artículo</th>
+            <th>Probabilidad (%)</th>
+            <th>Descripción Transcrita</th>
+            <th>Código Artículo</th>
+            <th>Buscar Producto</th>
+            <th>Cantidad</th>
+          </tr>
+        </thead>
+        <tbody>
+          {productos.map((producto, index) => {
+            const exactitud = Number(producto.exactitud);
+            const exactitudColor =
+              exactitud > 60
+              ? "#66bb6a" // green
+              : exactitud > 40
+              ? "#ffee58" // yellow
+              : "#ef5350"; // red
+
+            return (
+              <tr key={`${producto.codigo_prediccion}-${index}`}>
+                <td>
+                  {producto.imagen ? (
+                    <img
+                      src={`data:image/jpeg;base64,${producto.imagen}`}
+                      className="img-thumbnail"
+                      style={{ maxWidth: "50px" }}
+                    />
+                  ) : (
+                    <img
+                      src="https://static.vecteezy.com/system/resources/previews/006/059/989/non_2x/crossed-camera-icon-avoid-taking-photos-image-is-not-available-illustration-free-vector.jpg"
+                      className="img-thumbnail"
+                      alt={`Imagen no disponible para el producto ${producto.codigo_prediccion}`}
+                      style={{ maxWidth: "50px" }}
+                    />
+
+                    
+                  )}
+                </td>
+                <td>{producto.descripcion_csv}</td>
+                <td style={{ backgroundColor: exactitudColor, color: "black" }}>
+                  {producto.exactitud}%
+                </td>
+                <td>{producto.descripcion}</td>
+                <td>{producto.codigo_prediccion}</td>
+                <td>
+                  <div className="dropdown-container position-relative">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Buscar..."
+                      value={busquedas[producto.codigo_prediccion] || ""}
+                      onChange={(e) =>
+                        manejarInputBusqueda(e.target.value, producto.codigo_prediccion)
+                      }
+                    />
+                    {isLoadingBusqueda[producto.codigo_prediccion] && (
+                      <div>Cargando...</div>
+                    )}
+                    {opcionesBusqueda[producto.codigo_prediccion]?.length >
+                      0 && (
+                      <ul className="list-group mt-2 dropdown-list">
+                        {opcionesBusqueda[producto.codigo_prediccion].map(
+                          (item) => (
+                            <li
+                              key={item.CodArticle}
+                              className="list-group-item list-group-item-action bg-dark text-white p-4"
+                              onClick={() =>
+                                manejarSeleccionChange(
+                                  item.CodArticle,
+                                  producto.descripcion
+                                )
+                              }
+                            >
+                              {item.Combined}
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <input
+                    title="Cantidad"
+                    type="number"
+                    className="form-control"
+                    defaultValue={Number(producto.cantidad)}
+                    min="0"
+                  />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Card, Button } from 'react-bootstrap';
+import { Table, Button } from 'react-bootstrap';
 import { getWorkOrderInfo } from '../../Services/apiServices';
-
+import '../components_css/Audio.css';
 const Employee = () => {
   const [employeeInfo, setEmployeeInfo] = useState(null);
   const [error, setError] = useState(null);
@@ -23,26 +23,41 @@ const Employee = () => {
   }, []);
 
   return (
-    <Card className='bg-dark text-white'>
-      <Card.Body>
-        <Card.Title></Card.Title>
-        <h1>Detalles OT</h1>
-        {error && (
-          <Card.Text className="text-danger">Error: {error}</Card.Text>
-        )}
-        {employeeInfo ? (
-          <>
-            <Card.Text>Empleado: {employeeInfo.CodEmployee} - {employeeInfo.DesEmployee}</Card.Text>
-            <Card.Text>Orden de Trabajo: {employeeInfo.CodWorkOrder}</Card.Text>
-            <Card.Text>Cliente: {employeeInfo.CodCustomer} - {employeeInfo.DesCustomer}</Card.Text>
-            <Card.Text>Finca: {employeeInfo.DesCustomerDeliveryAddress}</Card.Text>
-          </>
+    <div>
+      <div className=' m-5 '>
+        {error ? (
+          <p className="text-danger">Error: {error}</p>
+        ) : employeeInfo ? (
+          <Table striped bordered hover variant="light" className=" border border-5">
+            <thead>
+              <tr className=''>
+                <th>EMPLEADO</th>
+                <th>ORDEN DE TRABAJO</th>
+                <th>CLIENTE</th>
+                <th>FINCA</th>
+                <th>PROYECTO</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{employeeInfo.CodEmployee} - {employeeInfo.DesEmployee}</td>
+                <td>{employeeInfo.CodWorkOrder} ({employeeInfo.DateWorkerOrder})</td>
+                <td>{employeeInfo.CodCustomer} - {employeeInfo.DesCustomer}</td>
+                <td>{employeeInfo.DesCustomerDeliveryAddress}</td>
+                <td>{employeeInfo.CodProject} {employeeInfo.VersionProject} {employeeInfo.DesProject}</td>
+              </tr>
+            </tbody>
+          </Table>
         ) : (
-          !error && <Card.Text>Cargando información del empleado...</Card.Text>
+          <p>Cargando información del empleado...</p>
         )}
-        <Button variant="dark border border-white">GENERAR PEDIDO</Button>
-      </Card.Body>
-    </Card>
+        <div className="d-flex justify-content-center ">
+          <Button style={{ backgroundColor: '#283746', width: '80%' }}>
+            GENERAR PEDIDO
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 

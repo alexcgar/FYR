@@ -16,17 +16,17 @@ function App() {
         </div>
       </div>
 
-      <div className="row p-4 justify-content-center flex-grow-1 ">
-        <div className="col-lg-6 mb-2">
-          <AudioRecorder /> {/* Incluye el componente AudioRecorder en tu aplicación */}
-        </div>
-        <div className="col-lg-6 mb-2">
+      <div className="row p-3 justify-content-center  ">
+        <div className="col-lg-12 mb-2">
           <Employee /> {/* Incluye el componente Employee en tu aplicación */}
         </div>
-      </div>
-      <div className="row ">
-        <div className="col-12">
+        <div className="col-12 ">
           <Correos /> {/* Incluye el componente Correos en tu aplicación */}
+        </div>
+      </div>
+      <div className="row mt-3">
+        <div className="col-12">
+          <AudioRecorder /> {/* Incluye el componente AudioRecorder en tu aplicación */}
         </div>
       </div>
       <div className="row mt-auto ">
@@ -34,6 +34,7 @@ function App() {
           <Footer /> {/* Incluye el Footer en tu aplicación */}
         </div>
       </div>
+      
     </div>
   );
 }

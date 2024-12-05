@@ -13,7 +13,7 @@ const NavBar = () => {
         <Navbar.Toggle aria-controls="navbarNav" />
         <Navbar.Collapse id="navbarNav">
           <Nav className="ms-auto me-3">
-            <Nav.Link href="./">Leer Correos</Nav.Link>
+            <Nav.Link href="./">BUSCAR PEDIDO</Nav.Link>
           </Nav>
         </Navbar.Collapse>
       </Container>
