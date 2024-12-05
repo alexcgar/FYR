@@ -25,31 +25,56 @@ function AudioPlayer() {
         console.error('Error fetching audio:', error);
       });
   };
+  const handleFetchAudio = () => {
+    axios.get('http://localhost:5000/api/getAudio', { responseType: 'blob' })
+      .then(response => {
+        const audioBlob = new Blob([response.data], { type: 'audio/mp3' });
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+      })
+      .catch(error => {
+        console.error('Error fetching audio:', error);
+      });
+  };
+  
 
   return (
     <MDBCard className="text-white">
       <MDBCardBody className="nova2 rounded-4">
-        <h3 className="mb-5">Reproducir Audio</h3>
+        <h1 className="mb-5">Reproducir Audio</h1>
         <div className="mb-4">
           <audio
             controls
             src={audioUrl}
             className="w-100"
             style={{
-              height: "86px",
+              height: "103px",
               borderRadius: "10px",
             }}
           />
         </div>
         <div className="d-flex gap-3">
-          <MDBBtn
-            color="text-white border border-white"
-            onClick={handleDownload}
-            disabled={audioUrl}
-          >
-            <MDBIcon fas icon="download" className="me-2" />
-            Descargar
-          </MDBBtn>
+          <div className="d-flex gap-3">
+            <MDBBtn
+              color="text-white border border-white"
+              onClick={handleDownload}
+              disabled={!audioUrl}
+              style={{ color: 'white' }}
+            >
+              <MDBIcon fas icon="download" className="me-2" />
+              Descargar
+            </MDBBtn>
+          </div>
+          <div className="d-flex gap-3">
+            <MDBBtn
+              color="text-white border border-white"
+              onClick={handleFetchAudio}
+              style={{ color: 'white' }}
+            >
+              <MDBIcon fas icon="cloud-download-alt" className="me-2" />
+              Obtener Audio
+            </MDBBtn>
+          </div>
         </div>
       </MDBCardBody>
     </MDBCard>
@@ -57,3 +82,4 @@ function AudioPlayer() {
 }
 
 export default AudioPlayer;
+

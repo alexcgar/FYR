@@ -209,13 +209,20 @@ def obtener_predicciones():
         imagen = df[df['CodArticle'] == codigo_prediccion]['Image'].values
         imagen = imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None
 
+        
+
+        # Calcular la exactitud de la predicción
+        descripcion_procesada = procesar_texto(producto)
+        exactitud = fuzz.token_set_ratio(descripcion_procesada, df.loc[df['CodArticle'] == codigo_prediccion, 'Description_Procesada'].iloc[0]) if codigo_prediccion in df['CodArticle'].values else 0
+        
         predicciones.append({
             'descripcion': producto.upper(),
             'codigo_prediccion': codigo_prediccion,
             'descripcion_csv': descripcion_csv,
             'rango_descripciones': rango_descripciones,
             'cantidad': cantidad,
-            'imagen': procesar_imagen(imagen) if imagen else None
+            'imagen': procesar_imagen(imagen) if imagen else None,
+            'exactitud': exactitud
         })
     return jsonify(predicciones), 200
 

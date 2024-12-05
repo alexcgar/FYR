@@ -35,7 +35,7 @@ const ProductoCard = ({ producto, onSeleccionChange, onBuscar }) => {
         const resultados = await onBuscar(valorBusqueda, newController.signal);
         console.log("Resultados de la búsqueda:", resultados);
         if (Array.isArray(resultados)) {
-          setOpcionesBusqueda(resultados.slice(0, 10)); // Limitar a 10 resultados
+          setOpcionesBusqueda(resultados.slice(0, 10));
         } else {
           console.error(
             "Los resultados de la búsqueda no son un array:",
@@ -68,10 +68,20 @@ const ProductoCard = ({ producto, onSeleccionChange, onBuscar }) => {
     debouncedBuscar(valorBusqueda);
   };
 
+  const exactitud = Number(producto.exactitud);
+  let exactitudColor = "black";
+  if (exactitud > 60) {
+    exactitudColor = "#4caf50"; // green
+  } else if (exactitud > 40 && exactitud < 60) {
+    exactitudColor = "#ffeb3b"; // yellow
+  } else if (exactitud <= 40) {
+    exactitudColor = "#f44336"; // red
+  }
+
   return (
-    <div className="card m-3 border border-dark p-3 ">
-      <div className="row ">
-        <div className="col-12 col-lg-2 mb-1 ">
+    <div className="card m-3 border border-dark p-3" style={{ background: exactitudColor }}>
+      <div className="row">
+        <div className="col-12 col-lg-2 mb-1">
           {producto.imagen ? (
             <img
               src={`data:image/jpeg;base64,${producto.imagen}`}
@@ -87,7 +97,8 @@ const ProductoCard = ({ producto, onSeleccionChange, onBuscar }) => {
           )}
         </div>
         <div className="col-12 col-md-4 centrado">
-          <h5 className="card-title">{producto.descripcion_csv}</h5>
+          <h5 className="card-title">{producto.descripcion_csv}{producto.exactitud}%</h5>
+         
         </div>
         <div className="col-12 col-md-3 centrado">
           <div>
@@ -103,7 +114,7 @@ const ProductoCard = ({ producto, onSeleccionChange, onBuscar }) => {
             {producto.codigo_prediccion}
           </div>
         </div>
-        <div className="col-12 col-md-3  centrado">
+        <div className="col-12 col-md-3 centrado">
           <div>
             <strong>
               <span>Buscar producto:</span>
@@ -119,7 +130,7 @@ const ProductoCard = ({ producto, onSeleccionChange, onBuscar }) => {
             />
             {isLoading && <div>Cargando...</div>}
             {opcionesBusqueda.length > 0 && (
-              <ul className="list-group mt-2 dropdown-list" >
+              <ul className="list-group mt-2 dropdown-list">
                 {opcionesBusqueda.map((item) => (
                   <li
                     key={item.CodArticle}
@@ -151,6 +162,7 @@ ProductoCard.propTypes = {
     descripcion_csv: PropTypes.string,
     codigo_prediccion: PropTypes.string,
     imagen: PropTypes.string,
+    exactitud: PropTypes.string,
     rango_descripciones: PropTypes.arrayOf(
       PropTypes.shape({
         CodArticle: PropTypes.string,
@@ -231,22 +243,20 @@ const Correos = () => {
   }
 
   return (
-    
-      <div className="row">
-        {productos.map((producto, index) => (
-          <div
-            className="col-12 col-md-12"
-            key={`${producto.codigo_prediccion}-${index}`}
-          >
-            <ProductoCard
-              producto={producto}
-              onSeleccionChange={manejarSeleccionChange}
-              onBuscar={manejarBuscar}
-            />
-          </div>
-        ))}
-      </div>
-    
+    <div className="row">
+      {productos.map((producto, index) => (
+        <div
+          className="col-12 col-md-12"
+          key={`${producto.codigo_prediccion}-${index}`}
+        >
+          <ProductoCard
+            producto={producto}
+            onSeleccionChange={manejarSeleccionChange}
+            onBuscar={manejarBuscar}
+          />
+        </div>
+      ))}
+    </div>
   );
 };
 

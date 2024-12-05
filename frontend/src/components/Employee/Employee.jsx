@@ -25,7 +25,8 @@ const Employee = () => {
   return (
     <Card className='bg-dark text-white'>
       <Card.Body>
-        <Card.Title>Detalles OT</Card.Title>
+        <Card.Title></Card.Title>
+        <h1>Detalles OT</h1>
         {error && (
           <Card.Text className="text-danger">Error: {error}</Card.Text>
         )}
