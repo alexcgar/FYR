@@ -6,8 +6,11 @@ import AudioRecorder from "./components/Audio/Audio.jsx";
 import "mdb-react-ui-kit/dist/css/mdb.min.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "./App.css";
+import { useState } from "react";
 
 function App() {
+  const [productosSeleccionados, setProductosSeleccionados] = useState([]);
+
   return (
     <div className="d-flex flex-column min-vh-100">
       <div className="row " >
@@ -18,10 +21,13 @@ function App() {
 
       <div className="row p-3 justify-content-center  ">
         <div className="col-lg-12 mb-2">
-          <Employee /> {/* Incluye el componente Employee en tu aplicación */}
-        </div>
+        <Employee productos={productosSeleccionados} />  
+        <Correos setProductosSeleccionados={setProductosSeleccionados} />
+             
+        
+         </div>
         <div className="col-12 ">
-          <Correos /> {/* Incluye el componente Correos en tu aplicación */}
+        
         </div>
       </div>
       <div className="row mt-3">

@@ -44,3 +44,12 @@ export const buscarProductos = async (busqueda) => {
     return []; // Devuelve un array vacío en caso de error
   }
 };
+export const generateOrder = async (orderData) => {
+  try {
+    const response = await axios.post('/api/generate_order', orderData);
+    return response.data;
+  } catch (error) {
+    console.error('Error al generar el pedido:', error);
+    throw error;
+  }
+};

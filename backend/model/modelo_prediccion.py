@@ -93,6 +93,7 @@ def cargar_datos(ruta_csv: str) -> Tuple[List[str], List[str], pd.DataFrame, Lis
         X = df_local["Description_Procesada"].tolist()
         y = df_local["CodArticle"].tolist()
         images = df_local["Image"].tolist()
+        ids = df_local["IDArticle"].tolist()
         return X, y, df_local, images
     except FileNotFoundError:
         logger.error(f"No se encontró el archivo: {ruta_csv}")
@@ -208,6 +209,11 @@ def obtener_predicciones():
         rango_descripciones = obtener_rango_descripciones(codigo_prediccion)
         imagen = df[df['CodArticle'] == codigo_prediccion]['Image'].values
         imagen = imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None
+        id_article = df[df['CodArticle'] == codigo_prediccion]['IDArticle'].values
+        id_article = id_article[0] if len(id_article) > 0 else None
+        print(f"ID: {id_article}")
+        
+       
 
         
 
@@ -225,7 +231,8 @@ def obtener_predicciones():
             'rango_descripciones': rango_descripciones,
             'cantidad': cantidad,
             'imagen': procesar_imagen(imagen) if imagen else None,
-            'exactitud': exactitud
+            'exactitud': exactitud,
+            'id_article': id_article
         })
     return jsonify(predicciones), 200
 

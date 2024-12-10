@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 import {
   fetchCorreos,
   sendSeleccion,
@@ -7,7 +8,7 @@ import {
 import "../components_css/Correos.css";
 import { debounce } from "lodash";
 
-const Correos = () => {
+const Correos = ({ setProductosSeleccionados }) => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busquedas, setBusquedas] = useState({});
@@ -24,16 +25,19 @@ const Correos = () => {
             cantidad: Number(producto.cantidad),
           }));
           setProductos(productosConCantidadNumerica);
+          setProductosSeleccionados(productosConCantidadNumerica); // Actualiza el estado en el componente padre
+
         } else {
           console.error("Los datos recibidos no son un array:", data);
         }
         setLoading(false);
       } catch (err) {
         console.error("Error al obtener los productos:", err);
+        setLoading(false);
       }
     };
     obtenerProductos();
-  }, []);
+  }, [setProductosSeleccionados]);
 
   const manejarSeleccionChange = async (selectedOption, descripcion) => {
     try {
@@ -198,6 +202,9 @@ const Correos = () => {
     </div>
     </div>
   );
+};
+Correos.propTypes = {
+  setProductosSeleccionados: PropTypes.func.isRequired,
 };
 
 export default Correos;

@@ -29,7 +29,7 @@ function AudioPlayer() {
       });
   };
 
-  const handleFetchAudio = () => {
+  const handleObtenerAudio = () => {
     axios
       .get("http://localhost:5000/api/getAudio", { responseType: "blob" })
       .then((response) => {
@@ -41,14 +41,15 @@ function AudioPlayer() {
         console.error("Error fetching audio:", error);
       });
   };
+  
 
   return (
-    <div className="text-white w-100">
+    <div className="text-white text-center ">
       <Button
         variant="dark"
-        className="mb-3 nova2 w-100"
+        className="mb-3 nova2   "
         onClick={() => setOpen(!open)} // Toggle para abrir y cerrar el contenido completo
-        style={{ backgroundColor: "#283746" }} // Estilo en línea con el color especificado
+        style={{ backgroundColor: "#283746", width: "80%" }} // Estilo en línea con el color especificado
       >
         {open ? "Cerrar Detalles" : "Ver Detalles del Audio"}
       </Button>
@@ -56,7 +57,7 @@ function AudioPlayer() {
       <Collapse in={open}>
         <div>
           {/* Tabla con contenido del reproductor y acciones */}
-          <Table bordered  variant="dark" className="mb-0">
+          <Table bordered variant="dark" className="mb-0 p-2">
             <thead>
               <tr>
                 <th>REPRODUCTOR DE AUDIO</th>
@@ -71,10 +72,10 @@ function AudioPlayer() {
                 <td style={{ width: "30%" }}> {/* Ancho más pequeño para las acciones */}
                   {/* Botones de acciones */}
                   <div className="d-flex gap-3">
-                  <Button
+                    <Button
                       variant="dark"
                       className="border border-white"
-                      onClick={handleFetchAudio}
+                      onClick={handleObtenerAudio}
                     >
                       Obtener Audio
                     </Button>
@@ -86,7 +87,6 @@ function AudioPlayer() {
                     >
                       Descargar
                     </Button>
-                    
                   </div>
                 </td>
               </tr>

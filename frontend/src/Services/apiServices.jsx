@@ -9,35 +9,49 @@ const API_SERVER = 'https://dinasa.wskserver.com:56544';
 const USERNAME = "apiuser";
 const PASSWORD = "XFBORp6srOlNY96qFLmr";
 
+let authToken = null; // Variable para almacenar el token
+
 /**
- * Obtener información de la orden de trabajo.
- * @param {string} workOrderId - ID de la orden de trabajo.
- * @param {string} employeeId - ID del empleado.
- * @returns {Object} Datos de la orden de trabajo.
+ * Función para autenticarse y obtener el token.
  */
-export const getWorkOrderInfo = async (workOrderId, employeeId) => {
+export const authenticate = async () => {
+  if (authToken) {
+    // Si ya tenemos un token, lo reutilizamos
+    return authToken;
+  }
+
   try {
-    // Autenticación para obtener el token
     const authResponse = await axios.post(`${API_SERVER}/api/login/authenticate`, {
       Username: USERNAME,
       Password: PASSWORD,
     });
-    
-    
-    // Verificar si la respuesta de autenticación fue exitosa
-    if (!authResponse.data || !authResponse.data) {
+
+    // Verificar si la respuesta tiene el token
+    if (authResponse.data) {
+      authToken = authResponse.data.replace(/'/g, '');
+      return authToken;
+    } else {
       throw new Error('Autenticación fallida: Token no recibido.');
     }
-   
-    const token = authResponse.data.replace(/'/g, '');
-    
-    // Solicitud a la API con el token
+  } catch (error) {
+    console.error('Error durante la autenticación:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener información de la orden de trabajo.
+ */
+export const getWorkOrderInfo = async (workOrderId, employeeId) => {
+  try {
+    const token = await authenticate();
+
     const response = await axios.post(
       `${API_SERVER}/api/dinasa/getinfoworkorder`,
       {
-        CodCompany: '1', // Código de la empresa
-        IDWorkOrder: workOrderId, // ID de la orden de trabajo
-        IDEmployee: employeeId, // ID del empleado
+        CodCompany: '1',
+        IDWorkOrder: workOrderId,
+        IDEmployee: employeeId,
       },
       {
         headers: {
@@ -46,14 +60,41 @@ export const getWorkOrderInfo = async (workOrderId, employeeId) => {
       }
     );
 
-    // Verificar si la solicitud fue exitosa
-    if (!response.data || !response.data.success) {
+    if (response.data && response.data.success) {
+      return response.data.data;
+    } else {
       throw new Error('Solicitud fallida: Información de la orden de trabajo no recibida.');
     }
-
-    return response.data.data;
   } catch (error) {
     console.error('Error al obtener la información de la orden de trabajo:', error);
+    throw error;
+  }
+};
+
+/**
+ * Generar pedido.
+ */
+export const generateOrder = async (orderData) => {
+  try {
+    const token = await authenticate();
+
+    const response = await axios.post(
+      `${API_SERVER}/api/dinasa/createordersl`,
+      orderData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.data && response.data.success) {
+      return response.data;
+    } else {
+      throw new Error('Solicitud fallida: No se pudo generar el pedido.');
+    }
+  } catch (error) {
+    console.error('Error al generar el pedido:', error);
     throw error;
   }
 };
