@@ -10,32 +10,52 @@ const Employee = ({ productos = [] }) => {
   const [employeeInfo, setEmployeeInfo] = useState(null);
   const [error, setError] = useState(null);
 
+  
   useEffect(() => {
     const fetchEmployeeInfo = async () => {
-      try {
-        const workOrderId = '696c98a1-69f3-4bbc-8a8e-da8bf1a31bbc'; // Reemplaza con el ID real
-        const employeeId = 'f9aaec71-d1d2-4fd7-8317-24950668e717'; // Reemplaza con el ID real
-        const data = await getWorkOrderInfo(workOrderId, employeeId);
-        setEmployeeInfo(data);
-      } catch (error) {
-        console.error('Error al obtener la información del empleado:', error);
-        setError(error.message);
-      }
-    };
+  try {
+    const response = await fetch('http://localhost:5000/api/predicciones');
 
-    fetchEmployeeInfo();
-  }, []);
+    // Verificar y registrar el encabezado Content-Type
+    const contentType = response.headers.get('content-type');
+
+    if (!contentType || !contentType.includes('application/json')) {
+      const responseText = await response.text(); // Leer respuesta completa
+      console.error('Respuesta inesperada:', responseText); // Log de respuesta
+      throw new Error('La respuesta no es un JSON válido');
+    }
+
+    const predicciones = await response.json();
+    if (!Array.isArray(predicciones) || predicciones.length === 0) {
+      throw new Error('No se encontraron predicciones');
+    }
+
+    const IdMessage = predicciones[0]?.correo_id;
+    if (!IdMessage) {
+      throw new Error('No se pudo obtener el ID del mensaje');
+    }
+
+    const data = await getWorkOrderInfo(IdMessage);
+    setEmployeeInfo(data);
+  } catch (error) {
+    console.error('Error al obtener la información del empleado:', error);
+    setError(error.message);
+  }
+};
+fetchEmployeeInfo();
+}, []);
+
 
   const handleGenerateOrder = async () => {
     if (!productos || productos.length === 0) {
       console.error("No hay productos seleccionados.");
       return;
     }
-
+    
     const orderData = {
       CodCompany: "1",
-      IDWorkOrder: "696c98a1-69f3-4bbc-8a8e-da8bf1a31bbc", // Reemplaza con el ID real de la orden de trabajo
-      IDEmployee: "f9aaec71-d1d2-4fd7-8317-24950668e717", // Reemplaza con el ID real del empleado
+      IDAudioMP3ToOrderSL: "696c98a1-69f3-4bbc-8a8e-da8bf1a31bbc", // Reemplaza con el ID real de la orden de trabajo
+      TextPrediction: productos.map(producto => producto.descripcion_csv).join(', '), // Concatenate all descripcion_csv values
       Lines: productos
         .filter(producto => producto.cantidad > 0)
         .map(producto => ({

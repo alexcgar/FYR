@@ -8106,3 +8106,6 @@ dist-ssr
 *.sw?
 
 .venv/Lib/site-packages/pyodbc.pyi
+backend/app/.env
+.gitignore
+.gitignore

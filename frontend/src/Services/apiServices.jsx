@@ -39,19 +39,44 @@ export const authenticate = async () => {
   }
 };
 
-/**
- * Obtener información de la orden de trabajo.
- */
-export const getWorkOrderInfo = async (workOrderId, employeeId) => {
+export const insertAudioMP3ToOrderSL = async (audioData) => {
   try {
     const token = await authenticate();
 
     const response = await axios.post(
-      `${API_SERVER}/api/dinasa/getinfoworkorder`,
+      `${API_SERVER}/api/audiomp3toordersl/insert`,
+      audioData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.data && response.data.success) {
+      return response.data.data.IDAudioMP3ToOrderSL;
+    } else {
+      throw new Error('Error al insertar la entidad AudioMP3ToOrderSL.');
+    }
+  } catch (error) {
+    console.error('Error al insertar la entidad AudioMP3ToOrderSL:', error);
+    throw error;
+  }
+};
+
+/**
+ * Obtener información de la orden de trabajo.
+ */
+export const getWorkOrderInfo = async (IdMessage) => {
+  try {
+    const token = await authenticate();
+
+    const response = await axios.post(
+      `${API_SERVER}/api/audiomp3toordersl/consult`,
       {
         CodCompany: '1',
-        IDWorkOrder: workOrderId,
-        IDEmployee: employeeId,
+        CodUser: '',
+        IDMessage: IdMessage
       },
       {
         headers: {
