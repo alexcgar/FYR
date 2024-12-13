@@ -10,6 +10,8 @@ import { useState } from "react";
 
 function App() {
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
+  const [audioBase64, setAudioBase64] = useState("");
+
 
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -21,7 +23,8 @@ function App() {
 
       <div className="row p-3 justify-content-center  ">
         <div className="col-lg-12 mb-2">
-        <Employee productos={productosSeleccionados} />  
+        <AudioRecorder setAudioBase64={setAudioBase64} /> {/* Incluye el componente AudioRecorder en tu aplicación */}
+        <Employee productos={productosSeleccionados} audioBase64={audioBase64} />  
         <Correos setProductosSeleccionados={setProductosSeleccionados} />
              
         
@@ -32,7 +35,7 @@ function App() {
       </div>
       <div className="row mt-3">
         <div className="col-12">
-          <AudioRecorder /> {/* Incluye el componente AudioRecorder en tu aplicación */}
+          
         </div>
       </div>
       <div className="row mt-auto ">

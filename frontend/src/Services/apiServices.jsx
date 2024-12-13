@@ -104,8 +104,35 @@ export const generateOrder = async (orderData) => {
     const token = await authenticate();
 
     const response = await axios.post(
-      `${API_SERVER}/api/dinasa/createordersl`,
+      `${API_SERVER}/api/audiomp3toordersl/generateordersl`,
       orderData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    console.log('Respuesta del servidor:', response.data); // Registrar la respuesta completa del servidor
+
+    if (response.data && response.data.success) {
+      return response.data;
+    } else {
+      throw new Error('Solicitud fallida: No se pudo generar el pedido.');
+    }
+  } catch (error) {
+    console.error('Error al generar el pedido:', error);
+
+    throw error;
+  }
+};
+export const generateEntity = async (entityData) => {
+  try {
+    const token = await authenticate();
+
+    const response = await axios.post(
+      `${API_SERVER}/api/audiomp3toordersl/insert`,
+      entityData,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -116,10 +143,42 @@ export const generateOrder = async (orderData) => {
     if (response.data && response.data.success) {
       return response.data;
     } else {
-      throw new Error('Solicitud fallida: No se pudo generar el pedido.');
+      console.error('Respuesta del servidor:', response.data);
+      throw new Error('Solicitud fallida: No se pudo generar la entidad.');
     }
   } catch (error) {
-    console.error('Error al generar el pedido:', error);
+    console.error('Error al generar la entidad:', error);
+    throw error;
+  }
+};
+
+export const fetchEmployeeInfo = async (codCompany, codUser, idMessage) => { // Consultar información del empleado entidad
+  try {
+    const token = await authenticate(); // Asumiendo que tienes una función de autenticación que obtiene el token
+
+    const response = await axios.post(
+      `${API_SERVER}/api/audiomp3toordersl/consult`,
+      {
+        CodCompany: codCompany,
+        CodUser: codUser,
+        IDMessage: idMessage,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (response.data && response.data.success) {
+      return response.data.data;
+    } else {
+      console.error('Respuesta del servidor:', response.data);
+      throw new Error('Solicitud fallida: No se pudo obtener la información del empleado.');
+    }
+  } catch (error) {
+    console.error('Error al obtener la información del empleado:', error);
     throw error;
   }
 };
