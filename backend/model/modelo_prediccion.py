@@ -167,8 +167,8 @@ def obtener_predicciones():
     predicciones = []
     for producto in productos:
         descripcion = producto[0]  # Accede a la descripción del producto
-        cantidad = producto[2]  # Accede a la cantidad del producto
-        correo_id = producto[3]  # Accede al id del correo
+        cantidad = producto[1]  # Accede a la cantidad del producto
+        correo_id = producto[2]  # Accede al id del correo
 
         codigo_prediccion = modelo_predecir(descripcion)
         descripcion_csv = df[df['CodArticle'] == codigo_prediccion]['Description'].values

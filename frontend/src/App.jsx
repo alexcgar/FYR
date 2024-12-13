@@ -23,8 +23,9 @@ function App() {
 
       <div className="row p-3 justify-content-center  ">
         <div className="col-lg-12 mb-2">
-        <AudioRecorder setAudioBase64={setAudioBase64} /> {/* Incluye el componente AudioRecorder en tu aplicación */}
         <Employee productos={productosSeleccionados} audioBase64={audioBase64} />  
+        <AudioRecorder setAudioBase64={setAudioBase64} /> {/* Incluye el componente AudioRecorder en tu aplicación */}
+        
         <Correos setProductosSeleccionados={setProductosSeleccionados} />
              
         

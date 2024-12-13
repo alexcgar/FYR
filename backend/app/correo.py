@@ -30,7 +30,7 @@ def obtener_token():
         error_msg = result.get("error_description", "No se pudo obtener el token de acceso.")
         raise Exception(f"No se pudo obtener el token de acceso: {error_msg}")
 
-def extract_body_message(cuerpo):
+def extract_body_message(cuerpo, correo_id):
     """Procesa el cuerpo del mensaje y extrae la información necesaria."""
     try:
         cuerpo = cuerpo.replace("'", '"')  # Cambiar comillas simples por dobles
@@ -40,10 +40,11 @@ def extract_body_message(cuerpo):
             for item in mensaje_json["items"]:
                 producto = item.get("product", "")
                 size = item.get("size", "")
-                quantity = item.get("quantity", "")
                 if size == "N/A":
                     size = ""
-                descriptions.append([producto, size, quantity])
+                combined = f"{producto} {size}".strip()  # Combinar producto y size
+                quantity = item.get("quantity", "")
+                descriptions.append([combined, quantity, correo_id])  # Añadir el id del correo
             return descriptions
         return []
     except json.JSONDecodeError:
@@ -69,14 +70,13 @@ def procesar_correos():
         productos = []
         for message in messages:
             cuerpo = message.get('body', {}).get('content', '')
+            correo_id = message.get('id', '')
             if message.get('body', {}).get('contentType', '') == 'html':
                 from bs4 import BeautifulSoup
                 soup = BeautifulSoup(cuerpo, 'html.parser')
                 cuerpo = soup.get_text()
-            extracted_items = extract_body_message(cuerpo)
-            for item in extracted_items:
-                item.append(message.get('id', ''))  # Añadir el id del correo al final del array
-                productos.append(item)
+            extracted_items = extract_body_message(cuerpo, correo_id)
+            productos.extend(extracted_items)
         return productos
                  
     else:
@@ -121,17 +121,3 @@ def descargar_audio_desde_correo(carpeta_destino):
         return None
     else:
         raise Exception(f'Error al obtener correos: {response.status_code} - {response.text}')
-
-# Ejemplo de uso
-if __name__ == '__main__':
-    try:
-        productos = procesar_correos()
-        print(productos)
-        carpeta_destino = "backend/model/audios"  # Reemplaza con tu ruta
-        audio_descargado = descargar_audio_desde_correo(carpeta_destino)
-        if audio_descargado:
-            print(f"Archivo de audio descargado en: {audio_descargado}")
-        else:
-            print("No se encontró ningún archivo de audio para descargar.")
-    except Exception as e:
-        print(f"Se produjo un error: {e}")
