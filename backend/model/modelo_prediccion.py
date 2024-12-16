@@ -1,7 +1,6 @@
 import base64
 import os
 import sys
-import threading
 import json
 import re
 import pandas as pd
@@ -13,6 +12,7 @@ from typing import Tuple, List
 from sklearn.linear_model import SGDClassifier
 from thefuzz import fuzz
 from thefuzz import process
+
 
 sys.path.append("backend")
 from app.correo import procesar_correos, descargar_audio_desde_correo
@@ -65,15 +65,14 @@ def cargar_modelo(ruta_modelo):
     else:
         return None, None
 
-def cargar_datos(ruta_csv: str) -> Tuple[List[str], List[str], pd.DataFrame, List[str]]:
-        df_local = pd.read_csv(ruta_csv)
-        df_local = df_local.dropna(subset=["CodArticle", "Description"])
-        df_local['Description_Procesada'] = df_local['Description'].apply(procesar_texto)
-        X = df_local["Description_Procesada"].tolist()
-        y = df_local["CodArticle"].tolist()
-        images = df_local["Image"].tolist()
-        # ids = df_local["IDArticle"].tolist() # No se está utilizando actualmente
-        return X, y, df_local, images
+def cargar_datos(ruta_parquet: str) -> Tuple[List[str], List[str], pd.DataFrame, List[str]]:
+    df_local = pd.read_parquet(ruta_parquet)
+    df_local = df_local.dropna(subset=["CodArticle", "Description", "IDArticle"])
+    df_local['Description_Procesada'] = df_local['Description'].apply(procesar_texto)
+    X = df_local["Description_Procesada"].tolist()
+    y = df_local["IDArticle"].tolist()  # Change to IDArticle
+    images = df_local["Image"].tolist()
+    return X, y, df_local, images
     
 
 def entrenar_modelo(X_train: List[str], y_train: List[str]) -> Tuple[SGDClassifier, TfidfVectorizer]:
@@ -112,11 +111,11 @@ def actualizar_modelo(descripcion: str, seleccion: str):
     descripciones_confirmadas[descripcion_normalizada] = seleccion
     guardar_descripciones_confirmadas(RUTA_DESC_CONFIRMADAS_PKL, RUTA_DESC_CONFIRMADAS_JSON)
 
-    nuevo_registro = pd.DataFrame([{'Description': descripcion, 'CodArticle': seleccion}])
+    nuevo_registro = pd.DataFrame([{'Description': descripcion, 'IDArticle': seleccion}])
     df = pd.concat([df, nuevo_registro], ignore_index=True)
 
     X = df['Description'].apply(procesar_texto).tolist()
-    y = df['CodArticle'].astype(str).tolist()
+    y = df['IDArticle'].astype(str).tolist()  # Change to IDArticle
     X_vectorized = vectorizer.transform(X)
     model.partial_fit(X_vectorized, y, classes=todas_las_clases)
 
@@ -171,11 +170,11 @@ def obtener_predicciones():
         correo_id = producto[2]  # Accede al id del correo
 
         codigo_prediccion = modelo_predecir(descripcion)
-        descripcion_csv = df[df['CodArticle'] == codigo_prediccion]['Description'].values
+        descripcion_csv = df[df['IDArticle'] == codigo_prediccion]['Description'].values
         descripcion_csv = descripcion_csv[0] if len(descripcion_csv) > 0 else "Descripción no encontrada"
-        imagen = df[df['CodArticle'] == codigo_prediccion]['Image'].values
+        imagen = df[df['IDArticle'] == codigo_prediccion]['Image'].values
         imagen = imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None
-        id_article = df[df['CodArticle'] == codigo_prediccion]['IDArticle'].values
+        id_article = df[df['IDArticle'] == codigo_prediccion]['IDArticle'].values
         id_article = id_article[0] if len(id_article) > 0 else None
 
         # Calcular la exactitud de la predicción
@@ -183,7 +182,7 @@ def obtener_predicciones():
         if descripcion_procesada in descripciones_confirmadas:
             exactitud = 100
         else:
-            exactitud = fuzz.token_set_ratio(descripcion_procesada, df.loc[df['CodArticle'] == codigo_prediccion, 'Description_Procesada'].iloc[0]) if codigo_prediccion in df['CodArticle'].values else 0
+            exactitud = fuzz.token_set_ratio(descripcion_procesada, df.loc[df['IDArticle'] == codigo_prediccion, 'Description_Procesada'].iloc[0]) if codigo_prediccion in df['IDArticle'].values else 0
         
         predicciones.append({
             'descripcion': descripcion.upper(),

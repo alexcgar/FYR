@@ -28,7 +28,7 @@ function App() {
 
       <div className="row p-3 justify-content-center">
         <div className="col-lg-12 mb-5 mt-3">
-          <Employee productos={productosSeleccionados} audioBase64={audioBase64}/>
+          <Employee productos={productosSeleccionados} audioBase64={audioBase64} setIsLoggedIn={setIsLoggedIn}/>
         </div>
         <div className="col-12">
           <Correos setProductosSeleccionados={setProductosSeleccionados} />

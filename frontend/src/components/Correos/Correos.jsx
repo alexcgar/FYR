@@ -175,7 +175,7 @@ const Correos = ({ setProductosSeleccionados }) => {
                       {opcionesBusqueda[producto.codigo_prediccion]?.length > 0 && (
                         <ul className="list-group mt-2 dropdown-list">
                           {opcionesBusqueda[producto.codigo_prediccion].map((item) => (
-                            <li
+                            <button
                               key={item.CodArticle}
                               className="list-group-item list-group-item-action p-4"
                               onClick={() =>
@@ -187,7 +187,7 @@ const Correos = ({ setProductosSeleccionados }) => {
                               }
                             >
                               {item.Combined}
-                            </li>
+                            </button>
                           ))}
                         </ul>
                       )}

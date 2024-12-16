@@ -64,37 +64,6 @@ export const insertAudioMP3ToOrderSL = async (audioData) => {
   }
 };
 
-/**
- * Obtener información de la orden de trabajo.
- */
-export const getWorkOrderInfo = async (IdMessage) => {
-  try {
-    const token = await authenticate();
-
-    const response = await axios.post(
-      `${API_SERVER}/api/audiomp3toordersl/consult`,
-      {
-        CodCompany: '1',
-        CodUser: '',
-        IDMessage: IdMessage
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (response.data && response.data.success) {
-      return response.data.data;
-    } else {
-      throw new Error('Solicitud fallida: Información de la orden de trabajo no recibida.');
-    }
-  } catch (error) {
-    console.error('Error al obtener la información de la orden de trabajo:', error);
-    throw error;
-  }
-};
 
 /**
  * Generar pedido.

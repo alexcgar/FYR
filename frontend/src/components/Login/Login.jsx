@@ -21,11 +21,11 @@ const Login = ({ setIsLoggedIn }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('https://dinasa.wskserver.com:56544//api/login/authenticate', {
+       await axios.post('https://dinasa.wskserver.com:56544//api/login/authenticate', {
         Username: email,
         Password: password
       });
-      console.log('Autenticación exitosa:', response.data);
+      
       setIsLoggedIn(true);
       
     } catch (error) {

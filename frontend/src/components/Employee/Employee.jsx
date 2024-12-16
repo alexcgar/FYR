@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Table, Button } from "react-bootstrap";
+import { Table, Button, Alert } from "react-bootstrap";
 import {
   fetchEmployeeInfo,
   generateOrder,
@@ -9,16 +9,17 @@ import {
 
 import "../components_css/Audio.css";
 
-const Employee = ({ productos = [], audioBase64 }) => {
+const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
   const [employeeInfo, setEmployeeInfo] = useState(null);
   const [error, setError] = useState(null);
-  const [entityGenerated, setEntityGenerated] = useState(false); // Estado para rastrear si la entidad ha sido generada
+  const [entityGenerated, setEntityGenerated] = useState(false);
+  const [orderGenerated, setOrderGenerated] = useState(false);
 
   useEffect(() => {
     const fetchInfo = async () => {
       try {
-        const data = await fetchEmployeeInfo("1", "", ""); // Pasa los valores adecuados para CodCompany, CodUser, y IDMessage
-        setEmployeeInfo(data[0]); // Asumiendo que quieres el primer elemento del array
+        const data = await fetchEmployeeInfo("1", "", "");
+        setEmployeeInfo(data[0]);
       } catch (error) {
         setError(error.message);
       }
@@ -34,43 +35,46 @@ const Employee = ({ productos = [], audioBase64 }) => {
     async function handleGenerateEntity() {
       const response = await fetch("http://localhost:5000/api/predicciones");
 
-      // Verificar y registrar el encabezado Content-Type
       const contentType = response.headers.get("content-type");
 
       if (!contentType || !contentType.includes("application/json")) {
-      const responseText = await response.text(); // Leer respuesta completa
-      console.error("Respuesta inesperada:", responseText); // Log de respuesta
-      throw new Error("La respuesta no es un JSON válido");
+        const responseText = await response.text();
+        console.error("Respuesta inesperada:", responseText);
+        throw new Error("La respuesta no es un JSON válido");
       }
 
       const predicciones = await response.json();
       if (!Array.isArray(predicciones) || predicciones.length === 0) {
-      throw new Error("No se encontraron predicciones");
+        throw new Error("No se encontraron predicciones");
       }
 
       const IdMessage = predicciones[0]?.correo_id;
       if (!IdMessage) {
-      throw new Error("No se pudo obtener el ID del mensaje");
+        throw new Error("No se pudo obtener el ID del mensaje");
       }
 
       const entityData = {
-      CodCompany: "1",
-      IDWorkOrder: "696c98a1-69f3-4bbc-8a8e-da8bf1a31bbc", //ID de la orden de trabajo
-      IDEmployee: "f9aaec71-d1d2-4fd7-8317-24950668e717",
-      IDMessage: IdMessage,
-      TextTranscription: predicciones
-        .map((producto) => `${producto.descripcion}${producto.cantidad}`) //Jason - 1, etc.
-        .join(","), // Concatenar todos los valores de descripcion y cantidad
-      FileMP3: audioBase64,
+        CodCompany: "1",
+        IDWorkOrder: "696c98a1-69f3-4bbc-8a8e-da8bf1a31bbc", //ID de la orden de trabajo
+        IDEmployee: "f9aaec71-d1d2-4fd7-8317-24950668e717", //ID del empleado que te ha mandado el audio
+        IDMessage: IdMessage,
+        TextTranscription: predicciones
+          .map((producto) => `${producto.descripcion}${producto.cantidad}`)
+          .join(","),
+        FileMP3: audioBase64,
+        
       };
       try {
-      const response = await generateEntity(entityData);
-      console.log("Entidad generada exitosamente:", response);
-      setEntityGenerated(true); // Actualizar el estado para indicar que la entidad ha sido generada
-      console.log("Datos de la entidad generada:", response.data); // Log de todos los datos de la entidad generada
+        const response = await generateEntity(entityData);
+        console.log("Entidad generada exitosamente:", response);
+        console.log("aaa", IdMessage);
+
+        setEntityGenerated(true);
       } catch (error) {
-      console.error("Error al generar la entidad:", error);
+        console.error("Error al generar la entidad:", error);
       }
+      
+
     }
 
     handleGenerateEntity();
@@ -85,22 +89,29 @@ const Employee = ({ productos = [], audioBase64 }) => {
     }
 
     const orderData = {
-      CodCompany: "1", //Código de la empresa
-      IDAudioMP3ToOrderSL: employeeInfo.IDAudioMP3ToOrderSL, //ID de la entidad
+      CodCompany: "1",
+      IDAudioMP3ToOrderSL: employeeInfo.IDAudioMP3ToOrderSL,
       TextPrediction: predicciones
-      .map((prediccion) => `${prediccion.codigo_prediccion}-${prediccion.descripcion_csv}`)
-      .join(","), // Concatenate all descripcion_csv values
+        .map(
+          (prediccion) =>
+            `${prediccion.codigo_prediccion}-${prediccion.descripcion_csv}`
+        )
+        .join(","),
       Lines: productos
-      .filter((producto) => producto.cantidad > 0)
-      .map((producto) => ({
-        IDArticle: producto.id_article, // Asegúrate de que este campo existe
-        Quantity: producto.cantidad,
-      })),
+        .filter((producto) => producto.cantidad > 0)
+        .map((producto) => ({
+          IDArticle: producto.id_article,
+          Quantity: producto.cantidad,
+        })),
     };
     console.log("Generando pedido:", orderData);
     try {
       const response = await generateOrder(orderData);
       console.log("Pedido generado exitosamente:", response);
+      setOrderGenerated(true);
+      setTimeout(() => {
+        setIsLoggedIn(false); // Redirigir al login después de 3 segundos
+      }, 3000);
     } catch (error) {
       console.error("Error al generar el pedido:", error);
     }
@@ -149,6 +160,11 @@ const Employee = ({ productos = [], audioBase64 }) => {
       ) : (
         <p>Cargando información del empleado...</p>
       )}
+      {orderGenerated && (
+        <Alert variant="success" className="text-center">
+          Pedido generado correctamente
+        </Alert>
+      )}
       <div className="d-flex justify-content-center mb-3">
         <Button
           style={{ backgroundColor: "#283746", width: "80%" }}
@@ -169,6 +185,7 @@ Employee.propTypes = {
       cantidad: PropTypes.number.isRequired,
     })
   ).isRequired,
+  setIsLoggedIn: PropTypes.func.isRequired,
 };
 
 export default Employee;
