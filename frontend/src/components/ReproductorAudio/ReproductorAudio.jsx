@@ -25,18 +25,18 @@ const CustomAudioPlayer = ({ audioUrl }) => {
   };
 
 return (
-    <div className="nova2  text-center  text-white table- rounded table-striped table-hover table-dark" style={{ marginTop: "10px" }}>
+    <div className="nova2 custom-audio-player text-center  text-white  rounded table-striped table-hover table-dark" >
         <audio
             ref={audioRef}
             src={audioUrl}
             onTimeUpdate={handleTimeUpdate}
             
         />
-        <div className="d-flex justify-content-center align-items-center gap-3">
+        <div className="d-flex justify-content-center align-items-center gap-3 ">
             <Button
-                
+                variant=""
                 onClick={handlePlayPause}
-                className="border border-white"
+                className="border border-white text-white"
                 disabled={!audioUrl}
             >
                 {isPlaying ? "Pausar" : "Reproducir"}

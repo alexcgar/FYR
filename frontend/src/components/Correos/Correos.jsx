@@ -111,13 +111,13 @@ const Correos = ({ setProductosSeleccionados }) => {
         <table className="table table-striped table-bordered border border-5 p-3">
           <thead className="thead-dark">
             <tr>
-              <th>Imagen</th>
-              <th>Descripción Transcrita</th>
-              <th>Probabilidad (%)</th>
-              <th>Descripción Producto</th>
-              <th>Código Artículo</th>
-              <th>Buscar Producto</th>
-              <th>Cantidad</th>
+              <th><strong>IMAGEN</strong></th>
+              <th><strong>DESCRIPCIÓN TRANSCRITA</strong></th>
+              <th><strong>PROBABILIDAD (%)</strong></th>
+              <th><strong>DESCRIPCIÓN PRODUCTO</strong></th>
+              <th><strong>CÓDIGO ARTÍCULO</strong></th>
+              <th><strong>BUSCAR PRODUCTO</strong></th>
+              <th><strong>CANTIDAD</strong></th>
             </tr>
           </thead>
           <tbody>

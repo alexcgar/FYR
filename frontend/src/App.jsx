@@ -19,25 +19,28 @@ function App() {
   }
 
   return (
-    <div className="d-flex flex-column min-vh-100">
+    <div className=" container-fluid ">
       <div className="row">
-        <div className="col-12 mb-3">
-          <Navbar /> {/* Incluye el Navbar en tu aplicación */}
+        <div className="col-12 mb-5">
+          <Navbar setisLoggedin={setIsLoggedIn} /> {/* Incluye el Navbar en tu aplicación */}
         </div>
       </div>
 
       <div className="row p-3 justify-content-center">
-        <div className="col-lg-12 mb-2">
-          <Employee productos={productosSeleccionados} audioBase64={audioBase64} />
-          <AudioRecorder setAudioBase64={setAudioBase64} /> {/* Incluye el componente AudioRecorder en tu aplicación */}
+        <div className="col-lg-12 mb-5 mt-3">
+          <Employee productos={productosSeleccionados} audioBase64={audioBase64}/>
+        </div>
+        <div className="col-12">
           <Correos setProductosSeleccionados={setProductosSeleccionados} />
         </div>
-        <div className="col-12"></div>
       </div>
       <div className="row mt-3">
-        <div className="col-12"></div>
+        <div className="col-12">
+          <AudioRecorder setAudioBase64={setAudioBase64} />{" "}
+          {/* Incluye el componente AudioRecorder en tu aplicación */}
+        </div>
       </div>
-      <div className="row mt-auto">
+      <div className="row ">
         <div className="col-12 p-0 m-0">
           <Footer /> {/* Incluye el Footer en tu aplicación */}
         </div>

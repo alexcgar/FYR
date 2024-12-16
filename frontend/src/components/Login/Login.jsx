@@ -15,7 +15,7 @@ import logo from "../../assets/novaLogo.png"; // Importa la imagen de React
 
 
 const Login = ({ setIsLoggedIn }) => {
-    const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 

@@ -53,10 +53,10 @@ function AudioPlayer({setAudioBase64}) {
   };
 
   return (
-    <div className="text-white text-center">
+    <div className="text-white text-center p-3">
       <Button
-        variant="dark"
-        className="mb-3 nova2"
+        
+        className="mb-3 "
         onClick={() => setOpen(!open)}
         style={{ backgroundColor: "#283746", width: "80%" }}
       >
@@ -64,24 +64,24 @@ function AudioPlayer({setAudioBase64}) {
       </Button>
 
       <Collapse in={open}>
-        <div className="p-3">
-          <Table bordered variant="dark" className="mb-0 p-2 ">
-            <thead>
-              <tr>
-                <th>REPRODUCTOR DE AUDIO</th>
-                <th>ACCIONES</th>
+        <div className=" nova2 text-white">
+          <Table bordered variant="" className="mb-0 p-2  text-white ">
+            <thead >
+              <tr >
+                <th className="text-white">REPRODUCTOR DE AUDIO</th>
+                <th className="text-white">ACCIONES</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td style={{ width: "900%" }}>
+                <td style={{ width: "100%" }}>
                   <CustomAudioPlayer audioUrl={audioUrl} />
                 </td>
                 <td >
                   <div className="d-flex gap-3">
                     <Button
-                      variant="dark"
-                      className="border border-white"
+                      className="border border-white text-white"
+                      variant=""
                       onClick={handleDownload}
                       disabled={!audioUrl}
                     >
