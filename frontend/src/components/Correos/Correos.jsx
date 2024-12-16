@@ -112,9 +112,9 @@ const Correos = ({ setProductosSeleccionados }) => {
           <thead className="thead-dark">
             <tr>
               <th>Imagen</th>
-              <th>Descripción Artículo</th>
-              <th>Probabilidad (%)</th>
               <th>Descripción Transcrita</th>
+              <th>Probabilidad (%)</th>
+              <th>Descripción Producto</th>
               <th>Código Artículo</th>
               <th>Buscar Producto</th>
               <th>Cantidad</th>
@@ -123,12 +123,12 @@ const Correos = ({ setProductosSeleccionados }) => {
           <tbody>
             {productos.map((producto, index) => {
               const exactitud = Number(producto.exactitud);
-              const exactitudColor =
+                const exactitudColor =
                 exactitud > 60
-                  ? "#66bb6a" // verde
+                  ? "#a5d6a7" // verde suave
                   : exactitud > 40
-                    ? "#ffee58" // amarillo
-                    : "#ef5350"; // rojo
+                  ? "#fff59d" // amarillo suave
+                  : "#ef9a9a"; // rojo suave
 
               return (
                 <tr key={`${producto.codigo_prediccion}-${index}`}>
@@ -148,11 +148,11 @@ const Correos = ({ setProductosSeleccionados }) => {
                       />
                     )}
                   </td>
-                  <td>{producto.descripcion_csv}</td>
+                  <td>{producto.descripcion}</td>
                   <td style={{ backgroundColor: exactitudColor, color: "black" }}>
                     {producto.exactitud}%
                   </td>
-                  <td>{producto.descripcion}</td>
+                  <td>{producto.descripcion_csv}</td>
                   <td>{producto.codigo_prediccion}</td>
                   <td>
                     <div className="dropdown-container position-relative">

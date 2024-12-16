@@ -25,7 +25,7 @@ const CustomAudioPlayer = ({ audioUrl }) => {
   };
 
 return (
-    <div className="custom-audio-player text-center bg-dark text-white table- rounded table-striped table-hover table-dark" style={{ marginTop: "10px" }}>
+    <div className="nova2  text-center  text-white table- rounded table-striped table-hover table-dark" style={{ marginTop: "10px" }}>
         <audio
             ref={audioRef}
             src={audioUrl}
@@ -34,7 +34,7 @@ return (
         />
         <div className="d-flex justify-content-center align-items-center gap-3">
             <Button
-                variant="dark"
+                
                 onClick={handlePlayPause}
                 className="border border-white"
                 disabled={!audioUrl}
@@ -44,7 +44,7 @@ return (
             <ProgressBar
                 now={progress}
                 className="w-100 "
-                variant="#283746"
+                
                 style={{ height: "20px", borderRadius: "1px", marginTop: "15px" }}
             />
          
