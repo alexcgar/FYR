@@ -19,7 +19,7 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
     const fetchInfo = async () => {
       try {
         const data = await fetchEmployeeInfo("1", "", "");
-        setEmployeeInfo(data[0]);
+        setEmployeeInfo(data);
       } catch (error) {
         setError(error.message);
       }

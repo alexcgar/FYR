@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import PropTypes from 'prop-types';
 import {
   fetchCorreos,
-  sendSeleccion,
   buscarProductos,
 } from "../../Services/Api";
 import "../components_css/Correos.css";
@@ -38,37 +37,37 @@ const Correos = ({ setProductosSeleccionados }) => {
     obtenerProductos();
   }, [setProductosSeleccionados]); // Añadir `reload` como dependencia
 
-  const manejarSeleccionChange = async (selectedOption, descripcion, codigoPrediccion) => {
-    try {
-      // Enviar la selección al backend y obtener los detalles del producto
-      const detallesProducto = await sendSeleccion(selectedOption, descripcion);
-
-      // Actualizar el estado local de productos y productos seleccionados
-      setProductos((prevProductos) => {
-        const nuevosProductos = prevProductos.map((producto) =>
-          producto.codigo_prediccion === codigoPrediccion
-            ? { ...producto, ...detallesProducto }
-            : producto
-        );
-        setProductosSeleccionados(nuevosProductos);
-        return nuevosProductos;
-      });
-
-      // Actualizar el valor del input con la descripción del producto seleccionado
-      setBusquedas((prevState) => ({
-        ...prevState,
-        [codigoPrediccion]: detallesProducto.Combined || selectedOption,
-      }));
-
-      // Limpiar las opciones de búsqueda para cerrar la lista
-      setOpcionesBusqueda((prevState) => ({
-        ...prevState,
-        [codigoPrediccion]: [],
-      }));
-    } catch (err) {
-      console.error('Error al manejar la selección:', err);
-    }
+  const manejarSeleccionChange = (selectedOption, codigoPrediccion, combinedValue) => {
+    // Actualizar el producto seleccionado
+    setProductos((prevProductos) => {
+      const nuevosProductos = prevProductos.map((producto) =>
+        producto.codigo_prediccion === codigoPrediccion
+          ? {
+          ...producto,
+          descripcion_csv: combinedValue.split(" - ")[1]?.trim() || combinedValue, // Actualizar con la parte después de "-"
+          codigo_prediccion: selectedOption,
+        }
+          : producto
+      );
+  
+      // Actualizar los productos seleccionados globalmente
+      setProductosSeleccionados(nuevosProductos);
+      return nuevosProductos;
+    });
+  
+    // Actualizar el input con el valor seleccionado
+    setBusquedas((prevState) => ({
+      ...prevState,
+      [codigoPrediccion]: combinedValue,
+    }));
+  
+    // Limpiar las opciones de búsqueda
+    setOpcionesBusqueda((prevState) => ({
+      ...prevState,
+      [codigoPrediccion]: [],
+    }));
   };
+  
   const manejarBuscar = debounce(async (valorBusqueda, productoId) => {
     if (valorBusqueda.length > 0) {
       setIsLoadingBusqueda((prev) => ({ ...prev, [productoId]: true }));
@@ -86,7 +85,7 @@ const Correos = ({ setProductosSeleccionados }) => {
     } else {
       setOpcionesBusqueda((prev) => ({ ...prev, [productoId]: [] }));
     }
-  }, 800);
+  }, 1000);
 
   const manejarInputBusqueda = (valor, productoId) => {
     setBusquedas((prev) => ({
@@ -130,89 +129,89 @@ const Correos = ({ setProductosSeleccionados }) => {
                   ? "#fff59d" // amarillo suave
                   : "#ef9a9a"; // rojo suave
 
-              return (
+                return (
                 <tr key={`${producto.codigo_prediccion}-${index}`}>
                   <td>
-                    {producto.imagen ? (
-                      <img
-                        src={`data:image/jpeg;base64,${producto.imagen}`}
-                        className="img-thumbnail"
-                        style={{ maxWidth: "50px" }}
-                      />
-                    ) : (
-                      <img
-                        src="https://static.vecteezy.com/system/resources/previews/006/059/989/non_2x/crossed-camera-icon-avoid-taking-photos-image-is-not-available-illustration-free-vector.jpg"
-                        className="img-thumbnail"
-                        alt={`Imagen no disponible para el producto ${producto.codigo_prediccion}`}
-                        style={{ maxWidth: "50px" }}
-                      />
-                    )}
+                  {producto.imagen ? (
+                    <img
+                    src={`data:image/jpeg;base64,${producto.imagen}`}
+                    className="img-thumbnail"
+                    style={{ maxWidth: "50px" }}
+                    />
+                  ) : (
+                    <img
+                    src="https://static.vecteezy.com/system/resources/previews/006/059/989/non_2x/crossed-camera-icon-avoid-taking-photos-image-is-not-available-illustration-free-vector.jpg"
+                    className="img-thumbnail"
+                    alt={`Imagen no disponible para el producto ${producto.codigo_prediccion}`}
+                    style={{ maxWidth: "50px" }}
+                    />
+                  )}
                   </td>
                   <td>{producto.descripcion}</td>
                   <td style={{ backgroundColor: exactitudColor, color: "black" }}>
-                    {producto.exactitud}%
+                  {producto.exactitud}%
                   </td>
                   <td>{producto.descripcion_csv}</td>
                   <td>{producto.codigo_prediccion}</td>
                   <td>
-                    <div className="dropdown-container position-relative">
-                      <input
-                        key={`input-${producto.codigo_prediccion}-${index}`}
-                        type="text"
-                        className="form-control"
-                        placeholder="Buscar..."
-                        value={busquedas[producto.codigo_prediccion] || ""}
-                        onChange={(e) =>
-                          manejarInputBusqueda(
-                            e.target.value,
-                            producto.codigo_prediccion
-                          )
-                        }
-                      />
-                      {isLoadingBusqueda[producto.codigo_prediccion] && (
-                        <div>Cargando...</div>
-                      )}
-                      {opcionesBusqueda[producto.codigo_prediccion]?.length > 0 && (
-                        <ul className="list-group mt-2 dropdown-list">
-                          {opcionesBusqueda[producto.codigo_prediccion].map((item) => (
-                            <button
-                              key={item.CodArticle}
-                              className="list-group-item list-group-item-action p-4"
-                              onClick={() =>
-                                manejarSeleccionChange(
-                                  item.CodArticle,
-                                  producto.descripcion,
-                                  producto.codigo_prediccion
-                                )
-                              }
-                            >
-                              {item.Combined}
-                            </button>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  </td>
-                  <td>
+                  <div className="dropdown-container position-relative">
                     <input
-                      title="Cantidad"
-                      type="number"
-                      className="form-control"
-                      value={producto.cantidad}
-                      min="0"
-                      onChange={(e) =>
-                        setProductos((prevProductos) =>
-                          prevProductos.map((p) =>
-                            p.codigo_prediccion === producto.codigo_prediccion
-                              ? { ...p, cantidad: Number(e.target.value) }
-                              : p
-                          )
+                    key={`input-${producto.codigo_prediccion}-${index}`}
+                    type="text"
+                    className="form-control"
+                    placeholder="Buscar..."
+                    value={busquedas[producto.codigo_prediccion] || ""}
+                    onChange={(e) =>
+                      manejarInputBusqueda(
+                      e.target.value,
+                      producto.codigo_prediccion
+                      )
+                    }
+                    />
+                    {isLoadingBusqueda[producto.codigo_prediccion] && (
+                    <div>Cargando...</div>
+                    )}
+                    {opcionesBusqueda[producto.codigo_prediccion]?.length > 0 && (
+                    <ul className="list-group mt-2 dropdown-list">
+                      {opcionesBusqueda[producto.codigo_prediccion].map((item) => (
+                      <button
+                      key={item.CodArticle}
+                      className="list-group-item list-group-item-action p-4"
+                      onClick={() =>
+                        manejarSeleccionChange(
+                          item.CodArticle, // selectedOption
+                          producto.codigo_prediccion, // codigoPrediccion
+                          item.Combined // combinedValue
                         )
                       }
-                    />
+                    >
+                      {item.Combined}
+                    </button>
+                      ))}
+                    </ul>
+                    )}
+                  </div>
+                  </td>
+                  <td>
+                  <input
+                    title="Cantidad"
+                    type="number"
+                    className="form-control"
+                    value={producto.cantidad}
+                    min="0"
+                    onChange={(e) =>
+                    setProductos((prevProductos) =>
+                      prevProductos.map((p) =>
+                      p.codigo_prediccion === producto.codigo_prediccion
+                        ? { ...p, cantidad: Number(e.target.value) }
+                        : p
+                      )
+                    )
+                    }
+                  />
                   </td>
                 </tr>
-              );
+                );
             })}
           </tbody>
         </table>
