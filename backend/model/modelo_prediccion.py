@@ -4,6 +4,7 @@ import sys
 import threading
 import json
 import re
+import time
 import pandas as pd
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
@@ -152,18 +153,15 @@ def inicializar_modelo():
     df = df_local
 
     descripciones_confirmadas = cargar_descripciones_confirmadas(RUTA_DESC_CONFIRMADAS_PKL)
+    inicializar_predicciones()
 
     if model is None or vectorizer is None:
         model, vectorizer = entrenar_modelo(X, y)
         guardar_modelo(model, vectorizer, RUTA_MODELO)
 
-app = Flask(__name__)
-CORS(app)
-
-@app.route('/api/predicciones', methods=['GET'])
-def obtener_predicciones():
+def inicializar_predicciones():
+    global predicciones
     productos = procesar_correos()
-    
     predicciones = []
     for producto in productos:
         descripcion = producto[0]  # Accede a la descripción del producto
@@ -195,6 +193,20 @@ def obtener_predicciones():
             'id_article': id_article,
             'correo_id': correo_id  # Añadir el id del correo
         })
+
+def actualizar_predicciones_periodicamente():
+    while True:
+        inicializar_predicciones()
+        time.sleep(30)  # Esperar 5 minutos (300 segundos)
+
+app = Flask(__name__)
+CORS(app)
+
+# Iniciar el hilo para actualizar las predicciones cada 5 minutos
+threading.Thread(target=actualizar_predicciones_periodicamente, daemon=True).start()
+
+@app.route('/api/predicciones', methods=['GET'])
+def obtener_predicciones():
     return jsonify(predicciones), 200
 
 @app.route('/api/send-seleccion', methods=['POST'])

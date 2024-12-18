@@ -31,7 +31,7 @@ export const sendSeleccion = async (seleccion, descripcion) => {
     });
   } catch (error) {
     console.error("Error al enviar la selección:", error);
-    throw new Error("Hubo un problema al enviar la selección.");
+    // throw new Error("Hubo un problema al enviar la selección.");
   }
 };
 
