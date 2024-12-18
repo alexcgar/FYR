@@ -21,7 +21,7 @@ function App() {
   return (
     <div className=" container-fluid ">
       <div className="row">
-        <div className="col-12 mb-5">
+        <div className="col-12 mb-5 mt-4">
           <Navbar setisLoggedin={setIsLoggedIn} /> {/* Incluye el Navbar en tu aplicación */}
         </div>
       </div>

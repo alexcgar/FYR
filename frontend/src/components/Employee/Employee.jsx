@@ -53,7 +53,7 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
       if (!IdMessage) {
         throw new Error("No se pudo obtener el ID del mensaje");
       }
-
+      
       const entityData = {
         CodCompany: "1",
         IDWorkOrder: "696c98a1-69f3-4bbc-8a8e-da8bf1a31bbc",
@@ -82,6 +82,7 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
     try {
       const response = await fetch("http://localhost:5000/api/predicciones");
       const predicciones = await response.json();
+      console.log("Predicciones:", predicciones);
       if (!productos || productos.length === 0) {
         console.error("No hay productos seleccionados.");
         return;
@@ -93,7 +94,7 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
         TextPrediction: predicciones
           .map(
             (prediccion) =>
-              `${prediccion.codigo_prediccion}-${prediccion.descripcion_csv}`
+              `${prediccion.codigo_prediccion}-${prediccion.descripcion}`
           )
           .join(","),
         Lines: productos

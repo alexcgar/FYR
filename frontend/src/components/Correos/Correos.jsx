@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {
   fetchCorreos,
   buscarProductos,
+  sendSeleccion
 } from "../../Services/Api";
 import "../components_css/Correos.css";
 import { debounce } from "lodash";
@@ -37,7 +38,7 @@ const Correos = ({ setProductosSeleccionados }) => {
     obtenerProductos();
   }, [setProductosSeleccionados]); // Añadir `reload` como dependencia
 
-  const manejarSeleccionChange = (selectedOption, codigoPrediccion, combinedValue) => {
+  const manejarSeleccionChange = (selectedOption, codigoPrediccion, combinedValue, descripcion) => {
     // Actualizar el producto seleccionado
     setProductos((prevProductos) => {
       const nuevosProductos = prevProductos.map((producto) =>
@@ -54,7 +55,7 @@ const Correos = ({ setProductosSeleccionados }) => {
       setProductosSeleccionados(nuevosProductos);
       return nuevosProductos;
     });
-  
+    sendSeleccion(selectedOption, descripcion);
     // Actualizar el input con el valor seleccionado
     setBusquedas((prevState) => ({
       ...prevState,
@@ -130,21 +131,21 @@ const Correos = ({ setProductosSeleccionados }) => {
                   : "#ef9a9a"; // rojo suave
 
                 return (
-                <tr key={`${producto.codigo_prediccion}-${index}`}>
+                <tr key={`${producto.codigo_prediccion}-${producto.descripcion}-${index}`}>
                   <td>
                   {producto.imagen ? (
-                    <img
-                    src={`data:image/jpeg;base64,${producto.imagen}`}
-                    className="img-thumbnail"
-                    style={{ maxWidth: "50px" }}
-                    />
+                  <img
+                  src={`data:image/jpeg;base64,${producto.imagen}`}
+                  className="img-thumbnail"
+                  style={{ maxWidth: "50px" }}
+                  />
                   ) : (
-                    <img
-                    src="https://static.vecteezy.com/system/resources/previews/006/059/989/non_2x/crossed-camera-icon-avoid-taking-photos-image-is-not-available-illustration-free-vector.jpg"
-                    className="img-thumbnail"
-                    alt={`Imagen no disponible para el producto ${producto.codigo_prediccion}`}
-                    style={{ maxWidth: "50px" }}
-                    />
+                  <img
+                  src="https://static.vecteezy.com/system/resources/previews/006/059/989/non_2x/crossed-camera-icon-avoid-taking-photos-image-is-not-available-illustration-free-vector.jpg"
+                  className="img-thumbnail"
+                  alt={`Imagen no disponible para el producto ${producto.codigo_prediccion}`}
+                  style={{ maxWidth: "50px" }}
+                  />
                   )}
                   </td>
                   <td>{producto.descripcion}</td>
@@ -155,59 +156,60 @@ const Correos = ({ setProductosSeleccionados }) => {
                   <td>{producto.codigo_prediccion}</td>
                   <td>
                   <div className="dropdown-container position-relative">
-                    <input
-                    key={`input-${producto.codigo_prediccion}-${index}`}
-                    type="text"
-                    className="form-control"
-                    placeholder="Buscar..."
-                    value={busquedas[producto.codigo_prediccion] || ""}
-                    onChange={(e) =>
-                      manejarInputBusqueda(
-                      e.target.value,
-                      producto.codigo_prediccion
-                      )
+                  <input
+                  key={producto.codigo_prediccion}
+                  type="text"
+                  className="form-control"
+                  placeholder="Buscar..."
+                  value={busquedas[producto.codigo_prediccion] || ""}
+                  onChange={(e) =>
+                    manejarInputBusqueda(
+                    e.target.value,
+                    producto.codigo_prediccion
+                    )
+                  }
+                  />
+                  {isLoadingBusqueda[producto.codigo_prediccion] && (
+                  <div>Cargando...</div>
+                  )}
+                  {opcionesBusqueda[producto.codigo_prediccion]?.length > 0 && (
+                  <ul className="list-group mt-2 dropdown-list">
+                    {opcionesBusqueda[producto.codigo_prediccion].map((item) => (
+                    <button
+                    key={`${item.CodArticle}-${producto.descripcion}-${index}`}
+                    className="list-group-item list-group-item-action p-4"
+                    onClick={() =>
+                    manejarSeleccionChange(
+                      item.CodArticle, // selectedOption
+                      producto.codigo_prediccion, // codigoPrediccion
+                      item.Combined, // combinedValue
+                      producto.descripcion // descripcion
+                    )
                     }
-                    />
-                    {isLoadingBusqueda[producto.codigo_prediccion] && (
-                    <div>Cargando...</div>
-                    )}
-                    {opcionesBusqueda[producto.codigo_prediccion]?.length > 0 && (
-                    <ul className="list-group mt-2 dropdown-list">
-                      {opcionesBusqueda[producto.codigo_prediccion].map((item) => (
-                      <button
-                      key={item.CodArticle}
-                      className="list-group-item list-group-item-action p-4"
-                      onClick={() =>
-                        manejarSeleccionChange(
-                          item.CodArticle, // selectedOption
-                          producto.codigo_prediccion, // codigoPrediccion
-                          item.Combined // combinedValue
-                        )
-                      }
-                    >
-                      {item.Combined}
-                    </button>
-                      ))}
-                    </ul>
-                    )}
+                  >
+                    {item.Combined}
+                  </button>
+                    ))}
+                  </ul>
+                  )}
                   </div>
                   </td>
                   <td>
                   <input
-                    title="Cantidad"
-                    type="number"
-                    className="form-control"
-                    value={producto.cantidad}
-                    min="0"
-                    onChange={(e) =>
-                    setProductos((prevProductos) =>
-                      prevProductos.map((p) =>
-                      p.codigo_prediccion === producto.codigo_prediccion
-                        ? { ...p, cantidad: Number(e.target.value) }
-                        : p
-                      )
+                  title="Cantidad"
+                  type="number"
+                  className="form-control"
+                  value={producto.cantidad}
+                  min="0"
+                  onChange={(e) =>
+                  setProductos((prevProductos) =>
+                    prevProductos.map((p) =>
+                    p.codigo_prediccion === producto.codigo_prediccion
+                    ? { ...p, cantidad: Number(e.target.value) }
+                    : p
                     )
-                    }
+                  )
+                  }
                   />
                   </td>
                 </tr>

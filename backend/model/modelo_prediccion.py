@@ -262,4 +262,4 @@ def get_audio():
 
 if __name__ == "__main__":
     inicializar_modelo()
-    app.run()
+    app.run() 
