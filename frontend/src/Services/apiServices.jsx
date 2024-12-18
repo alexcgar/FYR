@@ -82,7 +82,9 @@ export const generateOrder = async (orderData) => {
       }
     );
 
-    console.log('Respuesta del servidor:', response.data); // Registrar la respuesta completa del servidor
+    console.log('Estado de la respuesta:', response.status); // Registrar el estado de la respuesta
+    console.log('Encabezados de la respuesta:', response.headers); // Registrar los encabezados de la respuesta
+    console.log('Datos de la respuesta:', response.data); // Registrar los datos de la respuesta
 
     if (response.data && response.data.success) {
       return response.data;
@@ -95,6 +97,7 @@ export const generateOrder = async (orderData) => {
     throw error;
   }
 };
+
 export const generateEntity = async (entityData) => {
   try {
     const token = await authenticate();
