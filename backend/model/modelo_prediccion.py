@@ -88,7 +88,6 @@ def entrenar_modelo(X_train: List[str], y_train: List[str]) -> Tuple[SGDClassifi
    
 
 def modelo_predecir(descripcion: str) -> str:
-    global descripciones_confirmadas
     descripcion_normalizada = procesar_texto(descripcion)
     if descripcion_normalizada in descripciones_confirmadas:
         return descripciones_confirmadas[descripcion_normalizada]
@@ -148,67 +147,21 @@ def buscar_en_csv(busqueda: str) -> List[dict]:
 
 def inicializar_modelo():
     global model, vectorizer, todas_las_clases, df, descripciones_confirmadas, images
-    
     model, vectorizer = cargar_modelo(RUTA_MODELO)
     X, y, df_local, images = cargar_datos(RUTA_CSV)
     todas_las_clases = sorted(list(set(y)))
     df = df_local
 
-    inicializar_predicciones()
+    descripciones_confirmadas = cargar_descripciones_confirmadas(RUTA_DESC_CONFIRMADAS_PKL)
 
     if model is None or vectorizer is None:
         model, vectorizer = entrenar_modelo(X, y)
         guardar_modelo(model, vectorizer, RUTA_MODELO)
 
-def inicializar_predicciones():
-    global predicciones
-    productos = procesar_correos()
-    predicciones = []
-    for producto in productos:
-        descripcion = producto[0]  # Accede a la descripción del producto
-        cantidad = producto[1]  # Accede a la cantidad del producto
-        correo_id = producto[2]  # Accede al id del correo
-
-        codigo_prediccion = modelo_predecir(descripcion)
-        descripcion_csv = df[df['CodArticle'] == codigo_prediccion]['Description'].values
-        descripcion_csv = descripcion_csv[0] if len(descripcion_csv) > 0 else "Descripción no encontrada"
-        imagen = df[df['CodArticle'] == codigo_prediccion]['Image'].values
-        imagen = imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None
-        id_article = df[df['CodArticle'] == codigo_prediccion]['IDArticle'].values
-        id_article = id_article[0] if len(id_article) > 0 else None
-
-        # Calcular la exactitud de la predicción
-        descripcion_procesada = procesar_texto(descripcion)
-        if descripcion_procesada in descripciones_confirmadas:
-            exactitud = 100
-        else:
-            exactitud = fuzz.token_set_ratio(descripcion_procesada, df.loc[df['CodArticle'] == codigo_prediccion, 'Description_Procesada'].iloc[0]) if codigo_prediccion in df['CodArticle'].values else 0
-        
-        predicciones.append({
-            'descripcion': descripcion.upper(),
-            'codigo_prediccion': codigo_prediccion,
-            'descripcion_csv': descripcion_csv,
-            'cantidad': cantidad,
-            'imagen': procesar_imagen(imagen) if imagen else None,
-            'exactitud': exactitud,
-            'id_article': id_article,
-            'correo_id': correo_id  # Añadir el id del correo
-        })
-
-def actualizar_predicciones_periodicamente():
-    while True:
-        inicializar_predicciones()
-        time.sleep(30)  # Esperar 5 minutos (300 segundos)
-
+# Flask application
 app = Flask(__name__)
 CORS(app)
 
-# Iniciar el hilo para actualizar las predicciones cada 5 minutos
-threading.Thread(target=actualizar_predicciones_periodicamente, daemon=True).start()
-
-@app.route('/api/predicciones', methods=['GET'])
-def obtener_predicciones():
-    return jsonify(predicciones), 200
 
 @app.route('/api/send-seleccion', methods=['POST'])
 def recibir_seleccion():
@@ -246,7 +199,7 @@ def buscar_productos():
 
     try:
         resultados = buscar_en_csv(busqueda)
-    
+        return jsonify({'rango_descripciones': resultados}), 200
     except Exception as e:
         return jsonify({'error': 'Error al buscar productos.'}), 500    
     
@@ -272,7 +225,60 @@ def get_audio():
         return jsonify({'error': 'No se encontró ningún archivo de audio para descargar.'}), 404
 
 
+predicciones_globales = []
+
+def actualizar_predicciones_periodicamente():
+    global predicciones_globales
+    while True:
+        try:
+            productos = procesar_correos()
+            nuevas_predicciones = []
+            for producto in productos:
+                descripcion = producto[0]
+                cantidad = producto[1]
+                correo_id = producto[2]
+
+                descripcion_procesada = procesar_texto(descripcion)
+                if descripcion_procesada in descripciones_confirmadas:
+                    codigo_prediccion = descripciones_confirmadas[descripcion_procesada]
+                    exactitud = 100
+                else:
+                    codigo_prediccion = modelo_predecir(descripcion)
+                    exactitud = fuzz.token_set_ratio(
+                        descripcion_procesada,
+                        df.loc[df['CodArticle'] == codigo_prediccion, 'Description_Procesada'].iloc[0]
+                    ) if codigo_prediccion in df['CodArticle'].values else 0
+
+                descripcion_csv = df[df['CodArticle'] == codigo_prediccion]['Description'].values
+                descripcion_csv = descripcion_csv[0] if len(descripcion_csv) > 0 else "Descripción no encontrada"
+                imagen = df[df['CodArticle'] == codigo_prediccion]['Image'].values
+                imagen = imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None
+                id_article = df[df['CodArticle'] == codigo_prediccion]['IDArticle'].values
+                id_article = id_article[0] if len(id_article) > 0 else None
+
+                nuevas_predicciones.append({
+                    'descripcion': descripcion.upper(),
+                    'codigo_prediccion': codigo_prediccion,
+                    'descripcion_csv': descripcion_csv,
+                    'cantidad': cantidad,
+                    'imagen': procesar_imagen(imagen) if imagen else None,
+                    'exactitud': exactitud,
+                    'id_article': id_article,
+                    'correo_id': correo_id
+                })
+            predicciones_globales = nuevas_predicciones
+        except Exception as e:
+            print(f"Error actualizando predicciones: {e}")
+        time.sleep(90)  # Espera 90 segundos antes de actualizar nuevamente
+
+@app.route('/api/predicciones', methods=['GET'])
+def obtener_predicciones():
+    global predicciones_globales
+    return jsonify(predicciones_globales), 200
 
 if __name__ == "__main__":
     inicializar_modelo()
-    app.run() 
+    # Inicia el hilo para actualizar predicciones periódicamente
+    hilo_actualizador = threading.Thread(target=actualizar_predicciones_periodicamente, daemon=True)
+    hilo_actualizador.start()
+    app.run()

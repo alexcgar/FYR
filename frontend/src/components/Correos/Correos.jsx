@@ -15,6 +15,7 @@ const Correos = ({ setProductosSeleccionados }) => {
   const [opcionesBusqueda, setOpcionesBusqueda] = useState({});
   const [isLoadingBusqueda, setIsLoadingBusqueda] = useState({});
 
+
   useEffect(() => {
     const obtenerProductos = async () => {
       try {
@@ -201,15 +202,16 @@ const Correos = ({ setProductosSeleccionados }) => {
                   className="form-control"
                   value={producto.cantidad}
                   min="0"
-                  onChange={(e) =>
-                  setProductos((prevProductos) =>
-                    prevProductos.map((p) =>
-                    p.codigo_prediccion === producto.codigo_prediccion
-                    ? { ...p, cantidad: Number(e.target.value) }
-                    : p
-                    )
-                  )
-                  }
+                  onChange={(e) => {
+                    const value = Math.max(0, Number(e.target.value)); // Forzar valores no negativos
+                    setProductos((prevProductos) =>
+                      prevProductos.map((p) =>
+                        p.codigo_prediccion === producto.codigo_prediccion
+                          ? { ...p, cantidad: value }
+                          : p
+                      )
+                    );
+                  }}
                   />
                   </td>
                 </tr>

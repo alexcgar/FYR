@@ -132,8 +132,7 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
           bordered
           hover
           variant="light"
-          className="border border-5"
-        >
+          className="border border-5">
           <thead>
             <tr>
               <th>EMPLEADO</th>

@@ -28,7 +28,7 @@ function App() {
 
       <div className="row p-3 justify-content-center">
         <div className="col-lg-12 mb-5 mt-3">
-          <Employee productos={productosSeleccionados} audioBase64={audioBase64} setIsLoggedIn={setIsLoggedIn}/>
+          <Employee productos={productosSeleccionados} audioBase64={audioBase64} setIsLoggedIn={setIsLoggedIn} />
         </div>
         <div className="col-12">
           <Correos setProductosSeleccionados={setProductosSeleccionados} />
@@ -41,7 +41,7 @@ function App() {
         </div>
       </div>
       <div className="row ">
-        <div className="col-12 p-0 m-0">
+        <div className="col-12 p-0 m-0 sticky-bottom">
           <Footer /> {/* Incluye el Footer en tu aplicación */}
         </div>
       </div>
