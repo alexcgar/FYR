@@ -31,7 +31,7 @@ function App() {
           <Employee productos={productosSeleccionados} audioBase64={audioBase64} setIsLoggedIn={setIsLoggedIn} />
         </div>
         <div className="col-12">
-          <Correos setProductosSeleccionados={setProductosSeleccionados} />
+          <Correos  setProductosSeleccionados={setProductosSeleccionados} />
         </div>
       </div>
       <div className="row mt-3">
