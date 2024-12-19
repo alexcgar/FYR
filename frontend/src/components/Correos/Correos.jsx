@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 import {
   fetchCorreos,
   buscarProductos,
-  sendSeleccion,
+  sendSeleccion
 } from "../../Services/Api";
 import "../components_css/Correos.css";
 import { debounce } from "lodash";
@@ -29,30 +29,24 @@ const Correos = ({ setProductosSeleccionados }) => {
         } else {
           console.error("Los datos recibidos no son un array:", data);
         }
-        setLoading(false);
       } catch (err) {
         console.error("Error al obtener los productos:", err);
+      } finally {
         setLoading(false);
       }
     };
     obtenerProductos();
   }, [setProductosSeleccionados]);
 
-  const manejarSeleccionChange = (
-    selectedOption,
-    codigoPrediccion,
-    combinedValue,
-    descripcion
-  ) => {
+  const manejarSeleccionChange = (selectedOption, codigoPrediccion, combinedValue, descripcion) => {
     setProductos((prevProductos) => {
       const nuevosProductos = prevProductos.map((producto) =>
         producto.codigo_prediccion === codigoPrediccion
           ? {
-              ...producto,
-              descripcion_csv:
-                combinedValue.split(" - ")[1]?.trim() || combinedValue,
-              codigo_prediccion: selectedOption,
-            }
+          ...producto,
+          descripcion_csv: combinedValue.split(" - ")[1]?.trim() || combinedValue,
+          codigo_prediccion: selectedOption,
+        }
           : producto
       );
       setProductosSeleccionados(nuevosProductos);
@@ -96,7 +90,7 @@ const Correos = ({ setProductosSeleccionados }) => {
     manejarBuscar(valor, productoId);
   };
 
-  if (loading || productos.length === 0) {
+  if (loading) {
     return (
       <div className="loader-container">
         <div className="loader"></div>
@@ -108,46 +102,30 @@ const Correos = ({ setProductosSeleccionados }) => {
   return (
     <div className="container-fluid">
       <div className="bg-white">
-        <table className="table table-striped table-bordered border border-2 ">
+        <table className="table table-striped table-bordered border border-5 p-3">
           <thead className="thead-dark">
             <tr>
-              <th>
-                <strong>IMAGEN</strong>
-              </th>
-              <th>
-                <strong>DESCRIPCIÓN TRANSCRITA</strong>
-              </th>
-              <th>
-                <strong>PROBABILIDAD (%)</strong>
-              </th>
-              <th>
-                <strong>DESCRIPCIÓN PRODUCTO</strong>
-              </th>
-              <th>
-                <strong>CÓDIGO ARTÍCULO</strong>
-              </th>
-              <th>
-                <strong>BUSCAR PRODUCTO</strong>
-              </th>
-              <th>
-                <strong>CANTIDAD</strong>
-              </th>
+              <th><strong>IMAGEN</strong></th>
+              <th><strong>DESCRIPCIÓN TRANSCRITA</strong></th>
+              <th><strong>PROBABILIDAD (%)</strong></th>
+              <th><strong>DESCRIPCIÓN PRODUCTO</strong></th>
+              <th><strong>CÓDIGO ARTÍCULO</strong></th>
+              <th><strong>BUSCAR PRODUCTO</strong></th>
+              <th><strong>CANTIDAD</strong></th>
             </tr>
           </thead>
           <tbody>
             {productos.map((producto, index) => {
               const exactitud = Number(producto.exactitud);
               const exactitudColor =
-                exactitud > 70
+                exactitud > 60
                   ? "#a5d6a7"
                   : exactitud > 40
                   ? "#fff59d"
                   : "#ef9a9a";
 
               return (
-                <tr
-                  key={`${producto.codigo_prediccion}-${producto.descripcion}-${index}`}
-                >
+                <tr key={`${producto.codigo_prediccion}-${producto.descripcion}-${index}-${Math.random()}`}>
                   <td>
                     {producto.imagen ? (
                       <img
@@ -165,9 +143,7 @@ const Correos = ({ setProductosSeleccionados }) => {
                     )}
                   </td>
                   <td>{producto.descripcion}</td>
-                  <td
-                    style={{ backgroundColor: exactitudColor, color: "black" }}
-                  >
+                  <td style={{ backgroundColor: exactitudColor, color: "black" }}>
                     {producto.exactitud}%
                   </td>
                   <td>{producto.descripcion_csv}</td>
@@ -180,41 +156,34 @@ const Correos = ({ setProductosSeleccionados }) => {
                         className="form-control"
                         placeholder="Buscar..."
                         value={busquedas[producto.codigo_prediccion] || ""}
-                        onChange={(e) => {
-                          console.log(
-                            `Input value for ${producto.codigo_prediccion}:`,
-                            e.target.value
-                          );
+                        onChange={(e) =>
                           manejarInputBusqueda(
                             e.target.value,
                             producto.codigo_prediccion
-                          );
-                        }}
+                          )
+                        }
                       />
                       {isLoadingBusqueda[producto.codigo_prediccion] && (
                         <div>Cargando...</div>
                       )}
-                      {opcionesBusqueda[producto.codigo_prediccion]?.length >
-                        0 && (
+                      {opcionesBusqueda[producto.codigo_prediccion]?.length > 0 && (
                         <ul className="list-group mt-2 dropdown-list">
-                          {opcionesBusqueda[producto.codigo_prediccion].map(
-                            (item) => (
-                              <button
-                                key={`${item.CodArticle}-${producto.descripcion}-${index}`}
-                                className="list-group-item list-group-item-action p-4"
-                                onClick={() =>
-                                  manejarSeleccionChange(
-                                    item.CodArticle,
-                                    producto.codigo_prediccion,
-                                    item.Combined,
-                                    producto.descripcion
-                                  )
-                                }
-                              >
-                                {item.Combined}
-                              </button>
-                            )
-                          )}
+                          {opcionesBusqueda[producto.codigo_prediccion].map((item) => (
+                            <button
+                              key={`${item.CodArticle}-${producto.descripcion}-${index}-${Math.random()}`}
+                              className="list-group-item list-group-item-action p-4"
+                              onClick={() =>
+                                manejarSeleccionChange(
+                                  item.CodArticle,
+                                  producto.codigo_prediccion,
+                                  item.Combined,
+                                  producto.descripcion
+                                )
+                              }
+                            >
+                              {item.Combined}
+                            </button>
+                          ))}
                         </ul>
                       )}
                     </div>
@@ -225,28 +194,16 @@ const Correos = ({ setProductosSeleccionados }) => {
                       type="number"
                       className="form-control"
                       value={producto.cantidad}
-                      min="0"
-                      onChange={(e) => {
-                        const value = Math.max(0, Number(e.target.value));
-                        console.log(
-                          `Cantidad value for ${producto.codigo_prediccion}:`,
-                          value
-                        );
+                      min="1"
+                      onChange={(e) =>
                         setProductos((prevProductos) =>
                           prevProductos.map((p) =>
                             p.codigo_prediccion === producto.codigo_prediccion
-                              ? { ...p, cantidad: value }
+                              ? { ...p, cantidad: Number(e.target.value) }
                               : p
                           )
-                        );
-                        setProductosSeleccionados((prevProductos) =>
-                          prevProductos.map((p) =>
-                            p.codigo_prediccion === producto.codigo_prediccion
-                              ? { ...p, cantidad: value }
-                              : p
-                          )
-                        );
-                      }}
+                        )
+                      }
                     />
                   </td>
                 </tr>

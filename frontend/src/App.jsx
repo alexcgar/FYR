@@ -22,16 +22,21 @@ function App() {
     <div className=" container-fluid ">
       <div className="row">
         <div className="col-12 mb-5 mt-4">
-          <Navbar setisLoggedin={setIsLoggedIn} /> {/* Incluye el Navbar en tu aplicación */}
+          <Navbar setisLoggedin={setIsLoggedIn} />{" "}
+          {/* Incluye el Navbar en tu aplicación */}
         </div>
       </div>
 
       <div className="row p-3 justify-content-center">
         <div className="col-lg-12 mb-5 mt-3">
-          <Employee productos={productosSeleccionados} audioBase64={audioBase64} setIsLoggedIn={setIsLoggedIn} />
+          <Employee
+            productos={productosSeleccionados}
+            audioBase64={audioBase64}
+            setIsLoggedIn={setIsLoggedIn}
+          />
         </div>
         <div className="col-12">
-          <Correos  setProductosSeleccionados={setProductosSeleccionados} />
+          <Correos setProductosSeleccionados={setProductosSeleccionados} />
         </div>
       </div>
       <div className="row mt-3">

@@ -53,7 +53,7 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
       if (!IdMessage) {
         throw new Error("No se pudo obtener el ID del mensaje");
       }
-      
+
       const entityData = {
         CodCompany: "1",
         IDWorkOrder: "696c98a1-69f3-4bbc-8a8e-da8bf1a31bbc",
@@ -176,7 +176,8 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
           <strong>Código de Pedido:</strong> {orderGenerated.data.CodOrder}
           <br />
           <br />
-          <strong>Fecha de Pedido:</strong> {new Date(orderGenerated.data.OrderDate).toLocaleDateString()}
+          <strong>Fecha de Pedido:</strong>{" "}
+          {new Date(orderGenerated.data.OrderDate).toLocaleDateString()}
         </Alert>
       )}
       {isLoading && (
