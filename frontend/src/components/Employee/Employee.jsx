@@ -79,6 +79,7 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
 
   const handleGenerateOrder = async () => {
     setIsLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 15000)); // Delay for 15 seconds
     try {
       const response = await fetch("http://localhost:5000/api/predicciones");
       const predicciones = await response.json();

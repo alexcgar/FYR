@@ -29,8 +29,8 @@ export const sendSeleccion = async (seleccion, descripcion) => {
         'Content-Type': 'application/json'
       }
     });
-  } catch (error) {
-    console.error("Error al enviar la selección:", error);
+  } catch {
+    console.log("Error al enviar la selección:");
     // throw new Error("Hubo un problema al enviar la selección.");
   }
 };
