@@ -47,7 +47,7 @@ def procesar_texto(texto: str) -> str:
     palabras = texto.split()
     texto_procesado = " ".join(
         [palabra for palabra in palabras if palabra not in STOP_WORDS]
-        )
+    )
     return texto_procesado
 
 
@@ -88,8 +88,7 @@ def cargar_datos(ruta_csv: str):
 
     df_local = df_local.dropna(subset=["CodArticle", "Description"])
 
-    df_local["Description_Procesada"] = df_local["Description"].apply(
-        procesar_texto)
+    df_local["Description_Procesada"] = df_local["Description"].apply(procesar_texto)
 
     X = df_local["Description_Procesada"].tolist()
 
@@ -100,7 +99,7 @@ def cargar_datos(ruta_csv: str):
     return X, y, df_local, images
 
 
-def entrenar_modelo(X_train: List[str],y_train: List[str]):
+def entrenar_modelo(X_train: List[str], y_train: List[str]):
 
     vectorizador = TfidfVectorizer()
 
@@ -133,8 +132,7 @@ def procesar_imagen(image_data):
     if image_data.startswith("b'") and image_data.endswith("'"):
         image_data = image_data[2:-1]
 
-    image_bytes = image_data.encode("utf-8").decode("unicode_escape").encode(
-        "latin1")
+    image_bytes = image_data.encode("utf-8").decode("unicode_escape").encode("latin1")
 
     base64_encoded = base64.b64encode(image_bytes).decode("utf-8")
 
@@ -142,7 +140,7 @@ def procesar_imagen(image_data):
 
 
 def actualizar_modelo(descripcion: str, seleccion: str):
-    
+
     global model, vectorizer, todas_las_clases, df, update_counter, descripciones_confirmadas
 
     if seleccion not in todas_las_clases:
@@ -152,12 +150,13 @@ def actualizar_modelo(descripcion: str, seleccion: str):
 
     descripciones_confirmadas[descripcion_normalizada] = seleccion
 
-    guardar_descripciones_confirmadas(RUTA_DESC_CONFIRMADAS_PKL,RUTA_DESC_CONFIRMADAS_JSON)
+    guardar_descripciones_confirmadas(
+        RUTA_DESC_CONFIRMADAS_PKL, RUTA_DESC_CONFIRMADAS_JSON
+    )
 
-    nuevo_registro = pd.DataFrame([{
-        "Description": descripcion,
-        "CodArticle": seleccion
-    }])
+    nuevo_registro = pd.DataFrame(
+        [{"Description": descripcion, "CodArticle": seleccion}]
+    )
 
     df = pd.concat([df, nuevo_registro], ignore_index=True)
 
@@ -185,12 +184,9 @@ def obtener_rango_descripciones(codigo_prediccion: str) -> List[dict]:
             descripcion = df.iloc[i]["Description"]
             descripcion_normalizada = descripcion.lower().strip()
             if descripcion_normalizada not in descripciones_confirmadas:
-                rango_descripciones.append({
-                    "CodArticle":
-                    df.iloc[i]["CodArticle"],
-                    "Description":
-                    descripcion
-                })
+                rango_descripciones.append(
+                    {"CodArticle": df.iloc[i]["CodArticle"], "Description": descripcion}
+                )
 
     return rango_descripciones
 
@@ -199,8 +195,11 @@ def buscar_en_csv(busqueda: str) -> List[dict]:
 
     busqueda_normalizada = procesar_texto(busqueda)
 
-    resultados = df[df["Description_Procesada"].str.contains(
-        busqueda_normalizada, case=False, na=False)]
+    resultados = df[
+        df["Description_Procesada"].str.contains(
+            busqueda_normalizada, case=False, na=False
+        )
+    ]
     return resultados.to_dict(orient="records")
 
 
@@ -216,7 +215,8 @@ def inicializar_modelo():
     df = df_local
 
     descripciones_confirmadas = cargar_descripciones_confirmadas(
-        RUTA_DESC_CONFIRMADAS_PKL)
+        RUTA_DESC_CONFIRMADAS_PKL
+    )
 
     if model is None or vectorizer is None:
         model, vectorizer = entrenar_modelo(X, y)
@@ -248,16 +248,14 @@ def buscar_en_csv(busqueda, umbral=70):
     lista_combinada = df["Combined"].tolist()
 
     # Utilizar fuzz.partial_ratio para mejorar las coincidencias parciales
-    resultados = process.extract(busqueda_lower,
-                                 lista_combinada,
-                                 scorer=fuzz.partial_ratio)
-    resultados_filtrados = [
-        item[0] for item in resultados if item[1] >= umbral
-    ]
+    resultados = process.extract(
+        busqueda_lower, lista_combinada, scorer=fuzz.partial_ratio
+    )
+    resultados_filtrados = [item[0] for item in resultados if item[1] >= umbral]
     cod_articles = [item.split(" - ")[0] for item in resultados_filtrados]
-    resultados_df = df[df["CodArticle"].isin(cod_articles)][[
-        "CodArticle", "Combined"
-    ]].drop_duplicates()
+    resultados_df = df[df["CodArticle"].isin(cod_articles)][
+        ["CodArticle", "Combined"]
+    ].drop_duplicates()
     resultados_dict = resultados_df.to_dict(orient="records")
     return resultados_dict
 
@@ -292,18 +290,15 @@ def get_audio():
                 ruta_audio,
                 mimetype="audio/mpeg",
                 as_attachment=True,
-                download_name=
-                "audio.mp3",  # Puedes ajustar el nombre del archivo según sea necesario
+                download_name="audio.mp3",  # Puedes ajustar el nombre del archivo según sea necesario
             )
         except Exception as e:
-            return jsonify({"error":
-                            "Error al enviar el archivo de audio."}), 500
+            return jsonify({"error": "Error al enviar el archivo de audio."}), 500
     else:
         return (
-            jsonify({
-                "error":
-                "No se encontró ningún archivo de audio para descargar."
-            }),
+            jsonify(
+                {"error": "No se encontró ningún archivo de audio para descargar."}
+            ),
             404,
         )
 
@@ -323,23 +318,19 @@ def actualizar_predicciones_periodicamente():
                 correo_id = producto[2]
 
                 descripcion_procesada = procesar_texto(descripcion)
+                
                 if descripcion_procesada in descripciones_confirmadas:
-                    codigo_prediccion = descripciones_confirmadas[
-                        descripcion_procesada]
+                    codigo_prediccion = descripciones_confirmadas[descripcion_procesada]
                     exactitud = 100
                 else:
                     codigo_prediccion = modelo_predecir(descripcion)
+                    
                     if codigo_prediccion in df["CodArticle"].values:
-                        descripcion_predicha_procesada = df.loc[
-                            df["CodArticle"] == codigo_prediccion,
-                            "Description_Procesada",
-                        ].iloc[0]
+                        descripcion_predicha_procesada = df.loc[df["CodArticle"] == codigo_prediccion,"Description_Procesada",].iloc[0]
 
                         # Vectorizar las descripciones
                         vectorizador_similitud = TfidfVectorizer()
-                        tfidf_matrix = vectorizador_similitud.fit_transform(
-                            [descripcion_procesada, descripcion_predicha_procesada]
-                        )
+                        tfidf_matrix = vectorizador_similitud.fit_transform([descripcion_procesada, descripcion_predicha_procesada])
 
                         # Calcular la similitud de coseno
                         cosine_sim = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
@@ -348,36 +339,33 @@ def actualizar_predicciones_periodicamente():
                     else:
                         exactitud = 0
 
-                descripcion_csv = df[df["CodArticle"] ==
-                                     codigo_prediccion]["Description"].values
-                descripcion_csv = (descripcion_csv[0] if len(descripcion_csv)
-                                   > 0 else "Descripción no encontrada")
-                imagen = df[df["CodArticle"] ==
-                            codigo_prediccion]["Image"].values
-                imagen = imagen[0] if len(imagen) > 0 and pd.notna(
-                    imagen[0]) else None
-                id_article = df[df["CodArticle"] ==
-                                codigo_prediccion]["IDArticle"].values
+                descripcion_csv = df[df["CodArticle"] == codigo_prediccion][
+                    "Description"
+                ].values
+                descripcion_csv = (
+                    descripcion_csv[0]
+                    if len(descripcion_csv) > 0
+                    else "Descripción no encontrada"
+                )
+                imagen = df[df["CodArticle"] == codigo_prediccion]["Image"].values
+                imagen = imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None
+                id_article = df[df["CodArticle"] == codigo_prediccion][
+                    "IDArticle"
+                ].values
                 id_article = id_article[0] if len(id_article) > 0 else None
 
-                nuevas_predicciones.append({
-                    "descripcion":
-                    descripcion.upper(),
-                    "codigo_prediccion":
-                    codigo_prediccion,
-                    "descripcion_csv":
-                    descripcion_csv,
-                    "cantidad":
-                    cantidad,
-                    "imagen":
-                    procesar_imagen(imagen) if imagen else None,
-                    "exactitud":
-                    exactitud,
-                    "id_article":
-                    id_article,
-                    "correo_id":
-                    correo_id,
-                })
+                nuevas_predicciones.append(
+                    {
+                        "descripcion": descripcion.upper(),
+                        "codigo_prediccion": codigo_prediccion,
+                        "descripcion_csv": descripcion_csv,
+                        "cantidad": cantidad,
+                        "imagen": procesar_imagen(imagen) if imagen else None,
+                        "exactitud": exactitud,
+                        "id_article": id_article,
+                        "correo_id": correo_id,
+                    }
+                )
             predicciones_globales = nuevas_predicciones
         except Exception as e:
             print(f"Error actualizando predicciones: {e}")
