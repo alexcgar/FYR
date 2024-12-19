@@ -88,6 +88,7 @@ def entrenar_modelo(X_train: List[str], y_train: List[str]) -> Tuple[SGDClassifi
    
 
 def modelo_predecir(descripcion: str) -> str:
+    global descripciones_confirmadas
     descripcion_normalizada = procesar_texto(descripcion)
     if descripcion_normalizada in descripciones_confirmadas:
         return descripciones_confirmadas[descripcion_normalizada]
@@ -147,12 +148,12 @@ def buscar_en_csv(busqueda: str) -> List[dict]:
 
 def inicializar_modelo():
     global model, vectorizer, todas_las_clases, df, descripciones_confirmadas, images
+    
     model, vectorizer = cargar_modelo(RUTA_MODELO)
     X, y, df_local, images = cargar_datos(RUTA_CSV)
     todas_las_clases = sorted(list(set(y)))
     df = df_local
 
-    descripciones_confirmadas = cargar_descripciones_confirmadas(RUTA_DESC_CONFIRMADAS_PKL)
     inicializar_predicciones()
 
     if model is None or vectorizer is None:
@@ -245,7 +246,7 @@ def buscar_productos():
 
     try:
         resultados = buscar_en_csv(busqueda)
-        return jsonify({'rango_descripciones': resultados}), 200
+    
     except Exception as e:
         return jsonify({'error': 'Error al buscar productos.'}), 500    
     
