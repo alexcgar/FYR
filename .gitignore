@@ -8109,3 +8109,9 @@ dist-ssr
 backend/app/.env
 .gitignore
 .gitignore
+backend/backups/modelo_backup_20250102-105821.joblib
+backend/model/audios/audio.mp3
+backend/backups/modelo_backup_20241226-110818.joblib
+backend/model/audios/audio.mp3
+backend/model/modelo_actualizado.joblib
+

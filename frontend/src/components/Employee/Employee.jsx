@@ -147,18 +147,18 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
           <tbody>
             <tr>
               <td>
-                {employeeInfo.CodEmployee} - {employeeInfo.DesEmployee}
+                <strong>{employeeInfo.CodEmployee} - {employeeInfo.DesEmployee}</strong>
               </td>
               <td>
-                {employeeInfo.CodWorkOrder} ({employeeInfo.DateWorkerOrder})
+                <strong>{employeeInfo.CodWorkOrder} ({employeeInfo.DateWorkerOrder})</strong>
               </td>
               <td>
-                {employeeInfo.CodCustomer} - {employeeInfo.DesCustomer}
+                <strong>{employeeInfo.CodCustomer} - {employeeInfo.DesCustomer}</strong>
               </td>
-              <td>{employeeInfo.DesCustomerDeliveryAddress}</td>
+              <td><strong>{employeeInfo.DesCustomerDeliveryAddress}</strong></td>
               <td>
-                {employeeInfo.CodProject} {employeeInfo.VersionProject}{" "}
-                {employeeInfo.DesProject}
+                <strong>{employeeInfo.CodProject} {employeeInfo.VersionProject}{" "}
+                {employeeInfo.DesProject}</strong>
               </td>
             </tr>
           </tbody>

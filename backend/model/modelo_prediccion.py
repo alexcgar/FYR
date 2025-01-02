@@ -1,16 +1,17 @@
 import base64
 import os
+import shutil
 import sys
 import threading
 import json
 import re
 import time
+import joblib
 import pandas as pd
 from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from sklearn.feature_extraction.text import TfidfVectorizer
-import pickle
-from typing import Tuple, List
+from typing import  List
 from sklearn.linear_model import SGDClassifier
 from thefuzz import fuzz
 from thefuzz import process
@@ -20,12 +21,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 sys.path.append("backend")
 from app.correo import procesar_correos, descargar_audio_desde_correo
 
-RUTA_MODELO = "backend/model/modelo_actualizado.pkl"
+RUTA_MODELO = "backend/model/modelo_actualizado.joblib"
 RUTA_CSV = "backend/model/consulta_resultado.csv"
-RUTA_DESC_CONFIRMADAS_PKL = "backend/model/descripciones_confirmadas.pkl"
+RUTA_DESC_CONFIRMADAS_PKL = "backend/model/descripciones_confirmadas.joblib"
 RUTA_DESC_CONFIRMADAS_JSON = "backend/model/descripciones_confirmadas.json"
 CARPETA_AUDIOS = "backend/model/audios"
-
+RUTA_BACKUP = "backend/backups"
 
 def obtener_stop_words() -> set:
     url = "https://raw.githubusercontent.com/stopwords-iso/stopwords-es/master/stopwords-es.json"
@@ -52,32 +53,30 @@ def procesar_texto(texto: str) -> str:
 
 
 def guardar_modelo(modelo, vectorizer, ruta_modelo: str):
-    with open(ruta_modelo, "wb") as f:
-        pickle.dump({"model": modelo, "vectorizer": vectorizer}, f)
+    joblib.dump({"model": modelo, "vectorizer": vectorizer}, ruta_modelo)
 
 
 def guardar_descripciones_confirmadas(ruta_pkl: str, ruta_json: str):
-    with open(ruta_pkl, "wb") as f:
-        pickle.dump(descripciones_confirmadas, f)
+    joblib.dump(descripciones_confirmadas, ruta_pkl)
 
     with open(ruta_json, "w", encoding="utf-8") as f:
         json.dump(descripciones_confirmadas, f, ensure_ascii=False, indent=4)
 
 
+
+
 def cargar_descripciones_confirmadas(ruta: str):
     if os.path.exists(ruta):
-        with open(ruta, "rb") as f:
-            descripciones = pickle.load(f)
-        return descripciones
+        return joblib.load(ruta)
     else:
         return {}
 
 
 def cargar_modelo(ruta_modelo):
+    # Cargar con joblib
     if os.path.exists(ruta_modelo):
-        with open(ruta_modelo, "rb") as f:
-            data = pickle.load(f)
-            return data["model"], data["vectorizer"]
+        data = joblib.load(ruta_modelo)
+        return data["model"], data["vectorizer"]
     else:
         return None, None
 
@@ -169,6 +168,17 @@ def actualizar_modelo(descripcion: str, seleccion: str):
     model.partial_fit(X_vectorized, y, classes=todas_las_clases)
 
     guardar_modelo(model, vectorizer, RUTA_MODELO)
+    backup_model(RUTA_MODELO, RUTA_BACKUP)
+
+    
+def backup_model(ruta_original: str, ruta_backup_dir: str):
+    if not os.path.exists(ruta_backup_dir):
+        os.makedirs(ruta_backup_dir)
+
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    nombre_backup = f"{ruta_backup_dir}/modelo_backup_{timestamp}.joblib"
+    shutil.copy2(ruta_original, nombre_backup)
+    print(f"Backup creado en {nombre_backup}")
 
 
 def obtener_rango_descripciones(codigo_prediccion: str) -> List[dict]:
@@ -191,36 +201,57 @@ def obtener_rango_descripciones(codigo_prediccion: str) -> List[dict]:
     return rango_descripciones
 
 
-def buscar_en_csv(busqueda: str) -> List[dict]:
-
-    busqueda_normalizada = procesar_texto(busqueda)
-
-    resultados = df[
-        df["Description_Procesada"].str.contains(
-            busqueda_normalizada, case=False, na=False
-        )
-    ]
-    return resultados.to_dict(orient="records")
-
-
 def inicializar_modelo():
     global model, vectorizer, todas_las_clases, df, descripciones_confirmadas, images
 
+    # Cargar el modelo y vectorizador desde archivo si existe
     model, vectorizer = cargar_modelo(RUTA_MODELO)
 
+    # Cargar los datos desde el CSV
     X, y, df_local, images = cargar_datos(RUTA_CSV)
 
+    # Inicializamos las clases
     todas_las_clases = sorted(list(set(y)))
 
+    # Guardar el dataframe en una variable global
     df = df_local
 
-    descripciones_confirmadas = cargar_descripciones_confirmadas(
-        RUTA_DESC_CONFIRMADAS_PKL
-    )
+    # Cargar descripciones confirmadas
+    descripciones_confirmadas = cargar_descripciones_confirmadas(RUTA_DESC_CONFIRMADAS_PKL)
 
+    # Si no existe un modelo, entrenamos uno nuevo
     if model is None or vectorizer is None:
         model, vectorizer = entrenar_modelo(X, y)
         guardar_modelo(model, vectorizer, RUTA_MODELO)
+    
+    # Hacer un backup del modelo después de cargarlo o entrenarlo
+    backup_model(RUTA_MODELO, RUTA_BACKUP)
+
+def buscar_en_csv(busqueda, umbral=70):
+    
+    df = pd.read_csv(RUTA_CSV)
+    
+    busqueda_lower = busqueda.lower()
+    
+    df["Description_lower"] = df["Description"].str.lower()
+    
+    df["Combined"] = df["CodArticle"].astype(str) + " - " + df["Description"]
+    
+    lista_combinada = df["Combined"].tolist()
+
+    # Utilizar fuzz.partial_ratio para mejorar las coincidencias parciales
+    resultados = process.extract(busqueda_lower, lista_combinada, scorer=fuzz.partial_ratio)
+    
+    resultados_filtrados = [item[0] for item in resultados if item[1] >= umbral]
+    
+    cod_articles = [item.split(" - ")[0] for item in resultados_filtrados]
+    
+    resultados_df = df[df["CodArticle"].isin(cod_articles)][["CodArticle", "Combined"]].drop_duplicates()
+    
+    resultados_dict = resultados_df.to_dict(orient="records")
+    
+    return resultados_dict
+
 
 
 # Flask application
@@ -233,31 +264,9 @@ def recibir_seleccion():
     data = request.get_json()
     seleccion = data.get("seleccion")
     descripcion = data.get("descripcion")
-
     if not descripcion or not seleccion:
         return jsonify({"error": "Faltan datos en la solicitud."}), 400
-
     actualizar_modelo(descripcion, seleccion)
-
-
-def buscar_en_csv(busqueda, umbral=70):
-    df = pd.read_csv(RUTA_CSV)
-    busqueda_lower = busqueda.lower()
-    df["Description_lower"] = df["Description"].str.lower()
-    df["Combined"] = df["CodArticle"].astype(str) + " - " + df["Description"]
-    lista_combinada = df["Combined"].tolist()
-
-    # Utilizar fuzz.partial_ratio para mejorar las coincidencias parciales
-    resultados = process.extract(
-        busqueda_lower, lista_combinada, scorer=fuzz.partial_ratio
-    )
-    resultados_filtrados = [item[0] for item in resultados if item[1] >= umbral]
-    cod_articles = [item.split(" - ")[0] for item in resultados_filtrados]
-    resultados_df = df[df["CodArticle"].isin(cod_articles)][
-        ["CodArticle", "Combined"]
-    ].drop_duplicates()
-    resultados_dict = resultados_df.to_dict(orient="records")
-    return resultados_dict
 
 
 @app.route("/api/buscar", methods=["POST"])
@@ -266,7 +275,6 @@ def buscar_productos():
     busqueda = data.get("busqueda")
     if not busqueda:
         return jsonify({"error": "Falta la consulta de búsqueda."}), 400
-
     try:
         resultados = buscar_en_csv(busqueda)
         return jsonify({"rango_descripciones": resultados}), 200
@@ -295,50 +303,51 @@ def get_audio():
         except Exception as e:
             return jsonify({"error": "Error al enviar el archivo de audio."}), 500
     else:
-        return (
-            jsonify(
-                {"error": "No se encontró ningún archivo de audio para descargar."}
-            ),
-            404,
-        )
+        return (jsonify({"error": "No se encontró ningún archivo de audio para descargar."}),404,)
 
 
 predicciones_globales = []
 
 
 def actualizar_predicciones_periodicamente():
-    global predicciones_globales
+    global predicciones_globales, model, vectorizer
     while True:
         try:
             productos = procesar_correos()
+            if not productos:
+                continue  # Saltar si no hay productos
+
             nuevas_predicciones = []
             for producto in productos:
                 descripcion = producto[0]
                 cantidad = producto[1]
                 correo_id = producto[2]
 
+                # Normalizar y predecir
                 descripcion_procesada = procesar_texto(descripcion)
-                
                 if descripcion_procesada in descripciones_confirmadas:
                     codigo_prediccion = descripciones_confirmadas[descripcion_procesada]
                     exactitud = 100
                 else:
                     codigo_prediccion = modelo_predecir(descripcion)
-                    
                     if codigo_prediccion in df["CodArticle"].values:
-                        descripcion_predicha_procesada = df.loc[df["CodArticle"] == codigo_prediccion,"Description_Procesada",].iloc[0]
+                        descripcion_predicha_procesada = df.loc[
+                            df["CodArticle"] == codigo_prediccion, "Description_Procesada"
+                        ].iloc[0]
 
-                        # Vectorizar las descripciones
+                        # Similaridad de coseno
                         vectorizador_similitud = TfidfVectorizer()
-                        tfidf_matrix = vectorizador_similitud.fit_transform([descripcion_procesada, descripcion_predicha_procesada])
-
-                        # Calcular la similitud de coseno
-                        cosine_sim = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
-
+                        tfidf_matrix = vectorizador_similitud.fit_transform(
+                            [descripcion_procesada, descripcion_predicha_procesada]
+                        )
+                        cosine_sim = cosine_similarity(
+                            tfidf_matrix[0:1], tfidf_matrix[1:2]
+                        )[0][0]
                         exactitud = int(cosine_sim * 100)
                     else:
                         exactitud = 0
 
+                # Obtener datos adicionales
                 descripcion_csv = df[df["CodArticle"] == codigo_prediccion][
                     "Description"
                 ].values
@@ -348,7 +357,9 @@ def actualizar_predicciones_periodicamente():
                     else "Descripción no encontrada"
                 )
                 imagen = df[df["CodArticle"] == codigo_prediccion]["Image"].values
-                imagen = imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None
+                imagen = (
+                    imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None
+                )
                 id_article = df[df["CodArticle"] == codigo_prediccion][
                     "IDArticle"
                 ].values
@@ -366,10 +377,12 @@ def actualizar_predicciones_periodicamente():
                         "correo_id": correo_id,
                     }
                 )
+
             predicciones_globales = nuevas_predicciones
         except Exception as e:
             print(f"Error actualizando predicciones: {e}")
-        time.sleep(10)  # Espera 90 segundos antes de actualizar nuevamente
+        time.sleep(10)
+
 
 
 @app.route("/api/predicciones", methods=["GET"])

@@ -43,10 +43,10 @@ const Correos = ({ setProductosSeleccionados }) => {
       const nuevosProductos = prevProductos.map((producto) =>
         producto.codigo_prediccion === codigoPrediccion
           ? {
-          ...producto,
-          descripcion_csv: combinedValue.split(" - ")[1]?.trim() || combinedValue,
-          codigo_prediccion: selectedOption,
-        }
+            ...producto,
+            descripcion_csv: combinedValue.split(" - ")[1]?.trim() || combinedValue,
+            codigo_prediccion: selectedOption,
+          }
           : producto
       );
       setProductosSeleccionados(nuevosProductos);
@@ -90,7 +90,7 @@ const Correos = ({ setProductosSeleccionados }) => {
     manejarBuscar(valor, productoId);
   };
 
-  if (loading) {
+  if (loading || productos.length === 0) {
     return (
       <div className="loader-container">
         <div className="loader"></div>
@@ -98,7 +98,7 @@ const Correos = ({ setProductosSeleccionados }) => {
       </div>
     );
   }
-
+  
   return (
     <div className="container-fluid">
       <div className="bg-white">
@@ -123,7 +123,7 @@ const Correos = ({ setProductosSeleccionados }) => {
                   : exactitud > 40
                   ? "#fff59d"
                   : "#ef9a9a";
-
+  
               return (
                 <tr key={`${producto.codigo_prediccion}-${producto.descripcion}-${index}-${Math.random()}`}>
                   <td>
@@ -195,15 +195,18 @@ const Correos = ({ setProductosSeleccionados }) => {
                       className="form-control"
                       value={producto.cantidad}
                       min="1"
-                      onChange={(e) =>
-                        setProductos((prevProductos) =>
-                          prevProductos.map((p) =>
+                      onChange={(e) => {
+                        const nuevaCantidad = Number(e.target.value);
+                        setProductos((prevProductos) => {
+                          const productosActualizados = prevProductos.map((p) =>
                             p.codigo_prediccion === producto.codigo_prediccion
-                              ? { ...p, cantidad: Number(e.target.value) }
+                              ? { ...p, cantidad: nuevaCantidad }
                               : p
-                          )
-                        )
-                      }
+                          );
+                          setProductosSeleccionados(productosActualizados); // Actualiza productos seleccionados
+                          return productosActualizados;
+                        });
+                      }}
                     />
                   </td>
                 </tr>
@@ -214,7 +217,7 @@ const Correos = ({ setProductosSeleccionados }) => {
       </div>
     </div>
   );
-};
+}
 
 Correos.propTypes = {
   setProductosSeleccionados: PropTypes.func.isRequired,

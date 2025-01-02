@@ -27,7 +27,7 @@ function App() {
         </div>
       </div>
 
-      <div className="row p-3 justify-content-center flex-grow-1">
+      <div className="row  justify-content-center flex-grow-1 p-3">
         <div className="col-lg-12 mb-5 mt-4">
           <Employee
             productos={productosSeleccionados}
