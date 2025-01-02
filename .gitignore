@@ -8115,3 +8115,8 @@ backend/backups/modelo_backup_20241226-110818.joblib
 backend/model/audios/audio.mp3
 backend/model/modelo_actualizado.joblib
 
+backend/app/__pycache__/correo.cpython-313.pyc
+backend/backups/modelo_backup_20250102-115440.joblib
+backend/model/__pycache__/modelo_prediccion.cpython-313.pyc
+backend/app/__pycache__/correo.cpython-313.pyc
+backend/app/__pycache__/correo.cpython-313.pyc
