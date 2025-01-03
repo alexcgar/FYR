@@ -175,6 +175,11 @@ def backup_model(ruta_original: str, ruta_backup_dir: str):
     if not os.path.exists(ruta_backup_dir):
         os.makedirs(ruta_backup_dir)
 
+    # Eliminar backups antiguos
+    for archivo in os.listdir(ruta_backup_dir):
+        if archivo.startswith("modelo_backup_") and archivo.endswith(".joblib"):
+            os.remove(os.path.join(ruta_backup_dir, archivo))
+
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     nombre_backup = f"{ruta_backup_dir}/modelo_backup_{timestamp}.joblib"
     shutil.copy2(ruta_original, nombre_backup)
