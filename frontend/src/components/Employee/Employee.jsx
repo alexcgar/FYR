@@ -78,17 +78,21 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
   }, [audioBase64, entityGenerated]);
 
   const handleGenerateOrder = async () => {
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 15000)); // Delay for 15 seconds
+    setIsLoading(true); // Show the loader
     try {
+      // Add a 35-second delay before proceeding
+      await new Promise((resolve) => setTimeout(resolve, 35000));
+  
       const response = await fetch("http://localhost:5000/api/predicciones");
       const predicciones = await response.json();
       console.log("Predicciones:", predicciones);
+  
       if (!productos || productos.length === 0) {
         console.error("No hay productos seleccionados.");
+        setIsLoading(false); // Hide the loader
         return;
       }
-
+  
       const orderData = {
         CodCompany: "1",
         IDAudioMP3ToOrderSL: employeeInfo.IDAudioMP3ToOrderSL,
@@ -105,11 +109,15 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
             Quantity: producto.cantidad,
           })),
       };
+  
       console.log("Generando pedido:", orderData);
+  
       try {
         const response = await generateOrder(orderData);
         console.log("Pedido generado exitosamente:", response);
         setOrderGenerated(response);
+  
+        // Delay logout (optional logic)
         setTimeout(() => {
           setIsLoggedIn(false);
         }, 988000);
@@ -119,9 +127,10 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
     } catch (error) {
       console.error("Error al obtener predicciones:", error);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Hide the loader
     }
   };
+  
 
   return (
     <div>

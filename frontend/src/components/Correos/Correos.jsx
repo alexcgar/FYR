@@ -25,7 +25,6 @@ const Correos = ({ setProductosSeleccionados }) => {
             cantidad: Number(producto.cantidad),
           }));
           setProductos(productosConCantidadNumerica);
-          setProductosSeleccionados(productosConCantidadNumerica);
         } else {
           console.error("Los datos recibidos no son un array:", data);
         }
@@ -36,22 +35,25 @@ const Correos = ({ setProductosSeleccionados }) => {
       }
     };
     obtenerProductos();
-  }, [setProductosSeleccionados]);
+  }, []);
+
+  useEffect(() => {
+    // Update the parent component state only when `productos` changes
+    setProductosSeleccionados(productos);
+  }, [productos, setProductosSeleccionados]);
 
   const manejarSeleccionChange = (selectedOption, codigoPrediccion, combinedValue, descripcion) => {
-    setProductos((prevProductos) => {
-      const nuevosProductos = prevProductos.map((producto) =>
+    setProductos((prevProductos) =>
+      prevProductos.map((producto) =>
         producto.codigo_prediccion === codigoPrediccion
           ? {
-            ...producto,
-            descripcion_csv: combinedValue.split(" - ")[1]?.trim() || combinedValue,
-            codigo_prediccion: selectedOption,
-          }
+              ...producto,
+              descripcion_csv: combinedValue.split(" - ")[1]?.trim() || combinedValue,
+              codigo_prediccion: selectedOption,
+            }
           : producto
-      );
-      setProductosSeleccionados(nuevosProductos);
-      return nuevosProductos;
-    });
+      )
+    );
     sendSeleccion(selectedOption, descripcion);
     setBusquedas((prevState) => ({
       ...prevState,
@@ -98,34 +100,30 @@ const Correos = ({ setProductosSeleccionados }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="container-fluid">
       <div className="bg-white">
         <table className="table table-striped table-bordered border border-5 p-3">
           <thead className="thead-dark">
             <tr>
-              <th><strong>IMAGEN</strong></th>
-              <th><strong>DESCRIPCIÓN TRANSCRITA</strong></th>
-              <th><strong>PROBABILIDAD (%)</strong></th>
-              <th><strong>DESCRIPCIÓN PRODUCTO</strong></th>
-              <th><strong>CÓDIGO ARTÍCULO</strong></th>
-              <th><strong>BUSCAR PRODUCTO</strong></th>
-              <th><strong>CANTIDAD</strong></th>
+              <th>IMAGEN</th>
+              <th>DESCRIPCIÓN TRANSCRITA</th>
+              <th>PROBABILIDAD (%)</th>
+              <th>DESCRIPCIÓN PRODUCTO</th>
+              <th>CÓDIGO ARTÍCULO</th>
+              <th>BUSCAR PRODUCTO</th>
+              <th>CANTIDAD</th>
             </tr>
           </thead>
           <tbody>
             {productos.map((producto, index) => {
               const exactitud = Number(producto.exactitud);
               const exactitudColor =
-                exactitud > 60
-                  ? "#a5d6a7"
-                  : exactitud > 40
-                  ? "#fff59d"
-                  : "#ef9a9a";
-  
+                exactitud > 60 ? "#a5d6a7" : exactitud > 40 ? "#fff59d" : "#ef9a9a";
+
               return (
-                <tr key={`${producto.codigo_prediccion}-${producto.descripcion}-${index}-${Math.random()}`}>
+                <tr key={`${producto.codigo_prediccion}-${producto.descripcion}-${index}`}>
                   <td>
                     {producto.imagen ? (
                       <img
@@ -151,26 +149,20 @@ const Correos = ({ setProductosSeleccionados }) => {
                   <td>
                     <div className="dropdown-container position-relative">
                       <input
-                        key={producto.codigo_prediccion}
                         type="text"
                         className="form-control"
                         placeholder="Buscar..."
                         value={busquedas[producto.codigo_prediccion] || ""}
                         onChange={(e) =>
-                          manejarInputBusqueda(
-                            e.target.value,
-                            producto.codigo_prediccion
-                          )
+                          manejarInputBusqueda(e.target.value, producto.codigo_prediccion)
                         }
                       />
-                      {isLoadingBusqueda[producto.codigo_prediccion] && (
-                        <div>Cargando...</div>
-                      )}
+                      {isLoadingBusqueda[producto.codigo_prediccion] && <div>Cargando...</div>}
                       {opcionesBusqueda[producto.codigo_prediccion]?.length > 0 && (
                         <ul className="list-group mt-2 dropdown-list">
                           {opcionesBusqueda[producto.codigo_prediccion].map((item) => (
                             <button
-                              key={`${item.CodArticle}-${producto.descripcion}-${index}-${Math.random()}`}
+                              key={item.CodArticle}
                               className="list-group-item list-group-item-action p-4"
                               onClick={() =>
                                 manejarSeleccionChange(
@@ -197,15 +189,13 @@ const Correos = ({ setProductosSeleccionados }) => {
                       min="1"
                       onChange={(e) => {
                         const nuevaCantidad = Number(e.target.value);
-                        setProductos((prevProductos) => {
-                          const productosActualizados = prevProductos.map((p) =>
+                        setProductos((prevProductos) =>
+                          prevProductos.map((p) =>
                             p.codigo_prediccion === producto.codigo_prediccion
                               ? { ...p, cantidad: nuevaCantidad }
                               : p
-                          );
-                          setProductosSeleccionados(productosActualizados); // Actualiza productos seleccionados
-                          return productosActualizados;
-                        });
+                          )
+                        );
                       }}
                     />
                   </td>
@@ -217,7 +207,7 @@ const Correos = ({ setProductosSeleccionados }) => {
       </div>
     </div>
   );
-}
+};
 
 Correos.propTypes = {
   setProductosSeleccionados: PropTypes.func.isRequired,
