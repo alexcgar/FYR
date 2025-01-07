@@ -6,7 +6,6 @@ import {
   generateOrder,
   generateEntity,
 } from "../../Services/apiServices";
-
 import "../components_css/Audio.css";
 
 const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
@@ -131,7 +130,6 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
     }
   };
   
-
   return (
     <div>
       {error ? (
@@ -220,3 +218,4 @@ Employee.propTypes = {
 };
 
 export default Employee;
+

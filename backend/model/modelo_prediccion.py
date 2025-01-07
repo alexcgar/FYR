@@ -316,9 +316,11 @@ predicciones_globales = []
 
 def actualizar_predicciones_periodicamente():
     global predicciones_globales, model, vectorizer
+    # filtro_personalizado = "items"  # Ejemplo de filtro alfanumérico
+
     while True:
         try:
-            productos = procesar_correos()
+            productos = procesar_correos() #filtro_personalizado
             if not productos:
                 continue  # Saltar si no hay productos
 

@@ -59,16 +59,34 @@ def extract_body_message(cuerpo, correo_id):
         return []
 
 
-def procesar_correos():
-    """Procesa los correos no leídos y extrae los productos."""
+def procesar_correos(): #(cod_order):
+    """
+    Procesa los correos no leídos y extrae los productos que coincidan con un código alfanumérico.
+    
+    Args:
+        codigo_filtro (str): Código alfanumérico para filtrar los correos.
+                             Ejemplo: "ABC12345"
+                             
+    Returns:
+        list: Lista de productos extraídos de los correos que coinciden con el filtro.
+    """
+    # if not cod_order:
+    #     raise ValueError("Debe proporcionar un código de filtro válido.")
+    
     token = obtener_token()
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
     }
+ 
+    # Construir el filtro para Graph API
+     # filtro_base = f"isRead eq false and contains(body/content, 'CodOrder:{cod_order}')" # Cambiado subject por body/content
+    
+    
     endpoint = f"https://graph.microsoft.com/v1.0/users/{USER_EMAIL}/mailFolders/Inbox/messages"
-    params = {"$filter": "isRead eq false", "$top": "10"}
-    response = requests.get(endpoint, headers=headers, params=params)
+    # params = {"$filter": filtro_base, "$top": "10"}
+    response = requests.get(endpoint, headers=headers) #  params=params
+    
     if response.status_code == 200:
         messages = response.json().get("value", [])
         productos = []
@@ -77,17 +95,16 @@ def procesar_correos():
             correo_id = message.get("id", "")
             if message.get("body", {}).get("contentType", "") == "html":
                 from bs4 import BeautifulSoup
-
                 soup = BeautifulSoup(cuerpo, "html.parser")
                 cuerpo = soup.get_text()
             extracted_items = extract_body_message(cuerpo, correo_id)
             productos.extend(extracted_items)
         return productos
-
     else:
         raise Exception(
             f"Error al obtener los correos: {response.status_code} - {response.text}"
         )
+
 
 
 def descargar_audio_desde_correo(carpeta_destino):

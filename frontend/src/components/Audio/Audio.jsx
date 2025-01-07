@@ -59,7 +59,7 @@ function AudioPlayer({ setAudioBase64 }) {
       <Button
         className="mb-1 "
         onClick={() => setOpen(!open)}
-        style={{ backgroundColor: "#283746", width: "99%" }}
+        style={{ backgroundColor: "#283746", width: "100%" }}
       >
         {open ? (
           <strong>Cerrar Detalles</strong>
@@ -69,7 +69,7 @@ function AudioPlayer({ setAudioBase64 }) {
       </Button>
       <Collapse in={open}>
         <div className=" nova2 text-white">
-          <Table bordered variant="" className="mb-0 p-2  text-white ">
+          <Table bordered  className=" text-white ">
             <thead>
               <tr>
                 <th className="text-white">REPRODUCTOR DE AUDIO</th>
