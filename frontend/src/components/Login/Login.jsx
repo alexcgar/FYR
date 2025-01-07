@@ -13,8 +13,7 @@ import axios from 'axios';
 import '../components_css/Login.css';
 import logo from "../../assets/novaLogo.png"; // Importa la imagen de React
 
-
-const Login = ({ setIsLoggedIn }) => {
+const Login = ({ setIsLoggedIn, setUserEmail }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,9 +24,10 @@ const Login = ({ setIsLoggedIn }) => {
         Username: email,
         Password: password
       });
-      
+
       setIsLoggedIn(true);
-      
+      setUserEmail(email); // Pasa el correo electrónico al componente padre
+
     } catch (error) {
       if (error.response) {
         // El servidor respondió con un código de estado fuera del rango 2xx
@@ -85,7 +85,7 @@ const Login = ({ setIsLoggedIn }) => {
 }
 Login.propTypes = {
   setIsLoggedIn: PropTypes.func.isRequired,
+  setUserEmail: PropTypes.func.isRequired,
 };
 
 export default Login;
-

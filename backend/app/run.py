@@ -1,4 +1,5 @@
 import sys
+from waitress import serve
 
 
 sys.path.append("backend")
@@ -12,5 +13,4 @@ hilo_actualizador.start()
 
 # Run the app with Waitress
 if __name__ == "__main__":
-    from waitress import serve
     serve(app, host="0.0.0.0", port=5000)

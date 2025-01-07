@@ -316,12 +316,12 @@ predicciones_globales = []
 
 def actualizar_predicciones_periodicamente():
     global predicciones_globales, model, vectorizer
-    # filtro_personalizado = "items"  # Ejemplo de filtro alfanumérico
 
     while True:
         try:
-            productos = procesar_correos() #filtro_personalizado
+            productos = procesar_correos()
             if not productos:
+                predicciones_globales = []  # Limpiar predicciones si no hay correos nuevos
                 continue  # Saltar si no hay productos
 
             nuevas_predicciones = []
@@ -389,6 +389,7 @@ def actualizar_predicciones_periodicamente():
         except Exception as e:
             print(f"Error actualizando predicciones: {e}")
         time.sleep(10)
+
 
 
 

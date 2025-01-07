@@ -13,9 +13,11 @@ function App() {
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
   const [audioBase64, setAudioBase64] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [email, setEmail] = useState('');
+
 
   if (!isLoggedIn) {
-    return <Login setIsLoggedIn={setIsLoggedIn} />;
+    return <Login setIsLoggedIn={setIsLoggedIn} setUserEmail={setEmail} />;
   }
 
   return (
@@ -32,6 +34,7 @@ function App() {
             productos={productosSeleccionados}
             audioBase64={audioBase64}
             setIsLoggedIn={setIsLoggedIn}
+            email={email}
           />
         </div>
         <div className="col-12">
