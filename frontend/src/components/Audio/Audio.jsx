@@ -5,12 +5,12 @@ import PropTypes from "prop-types";
 import "../components_css/Audio.css";
 import CustomAudioPlayer from "../ReproductorAudio/ReproductorAudio";
 
-function AudioPlayer({setAudioBase64}) {
+function AudioPlayer({ setAudioBase64 }) {
   const [audioUrl, setAudioUrl] = useState("");
   const [open, setOpen] = useState(false);
 
   const arrayBufferToBase64 = (buffer) => {
-    let binary = '';
+    let binary = "";
     const bytes = new Uint8Array(buffer);
     const len = bytes.byteLength;
     for (let i = 0; i < len; i++) {
@@ -22,7 +22,9 @@ function AudioPlayer({setAudioBase64}) {
   useEffect(() => {
     const handleObtenerAudio = () => {
       axios
-        .get("http://localhost:5000/api/getAudio", { responseType: "arraybuffer" })
+        .get("http://localhost:5000/api/getAudio", {
+          responseType: "arraybuffer",
+        })
         .then((response) => {
           // Convertir arraybuffer a base64
           const base64String = arrayBufferToBase64(response.data);
@@ -53,21 +55,23 @@ function AudioPlayer({setAudioBase64}) {
   };
 
   return (
-    <div className="text-white text-center p-3">
+    <div className="text-white text-center ">
       <Button
-        
-        className="mb-3 "
+        className="mb-1 "
         onClick={() => setOpen(!open)}
-        style={{ backgroundColor: "#283746", width: "80%" }}
+        style={{ backgroundColor: "#283746", width: "99%" }}
       >
-        {open ? "Cerrar Detalles" : "Ver Detalles del Audio"}
+        {open ? (
+          <strong>Cerrar Detalles</strong>
+        ) : (
+          <strong>Ver Detalles del Audio</strong>
+        )}
       </Button>
-
       <Collapse in={open}>
         <div className=" nova2 text-white">
           <Table bordered variant="" className="mb-0 p-2  text-white ">
-            <thead >
-              <tr >
+            <thead>
+              <tr>
                 <th className="text-white">REPRODUCTOR DE AUDIO</th>
                 <th className="text-white">ACCIONES</th>
               </tr>
@@ -77,7 +81,7 @@ function AudioPlayer({setAudioBase64}) {
                 <td style={{ width: "100%" }}>
                   <CustomAudioPlayer audioUrl={audioUrl} />
                 </td>
-                <td >
+                <td>
                   <div className="d-flex gap-3">
                     <Button
                       className="border border-white text-white"

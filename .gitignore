@@ -8122,3 +8122,4 @@ backend/model/__pycache__/modelo_prediccion.cpython-313.pyc
 backend/app/__pycache__/correo.cpython-313.pyc
 backend/app/__pycache__/correo.cpython-313.pyc
 backend/backups/modelo_backup_20250103-105411.joblib
+backend/backups/*

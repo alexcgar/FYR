@@ -19,12 +19,11 @@ function App() {
   }
 
   return (
-    <div className="container-fluid d-flex flex-column min-vh-100">
+    <div className="container-fluid d-flex flex-column min-vh-100 ">
       <div className="row">
-        <div className="col-12 mb-5 mt-4">
+        <div className="col-12 mb-5 mt-2">
           <Navbar setisLoggedin={setIsLoggedIn} />{" "}
-          {/* Incluye el Navbar en tu aplicación */}
-        </div>
+         </div>
       </div>
 
       <div className="row  justify-content-center flex-grow-1 p-3">
@@ -39,7 +38,7 @@ function App() {
           <Correos setProductosSeleccionados={setProductosSeleccionados} />
         </div>
       </div>
-      <div className="row mt-4">
+      <div className="row ">
         <div className="col-12">
           <AudioRecorder setAudioBase64={setAudioBase64} />{" "}
           {/* Incluye el componente AudioRecorder en tu aplicación */}

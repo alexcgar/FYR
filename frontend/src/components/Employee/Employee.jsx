@@ -142,7 +142,7 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
           bordered
           hover
           variant="light"
-          className="border border-5"
+          className="border border-5 m-1 mb-3"
         >
           <thead>
             <tr>
@@ -195,9 +195,9 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn }) => {
           <Spinner animation="border" variant="primary" />
         </div>
       )}
-      <div className="d-flex justify-content-center mb-3">
+      <div className="d-flex justify-content-center ">
         <Button
-          style={{ backgroundColor: "#283746", width: "80%" }}
+          style={{ backgroundColor: "#283746", width: "100%" }}
           onClick={handleGenerateOrder}
           disabled={isLoading}
         >

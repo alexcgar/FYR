@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import PropTypes from 'prop-types';
+import PropTypes from "prop-types";
 import {
   fetchCorreos,
   buscarProductos,
-  sendSeleccion
+  sendSeleccion,
 } from "../../Services/Api";
 import "../components_css/Correos.css";
 import { debounce } from "lodash";
@@ -42,13 +42,19 @@ const Correos = ({ setProductosSeleccionados }) => {
     setProductosSeleccionados(productos);
   }, [productos, setProductosSeleccionados]);
 
-  const manejarSeleccionChange = (selectedOption, codigoPrediccion, combinedValue, descripcion) => {
+  const manejarSeleccionChange = (
+    selectedOption,
+    codigoPrediccion,
+    combinedValue,
+    descripcion
+  ) => {
     setProductos((prevProductos) =>
       prevProductos.map((producto) =>
         producto.codigo_prediccion === codigoPrediccion
           ? {
               ...producto,
-              descripcion_csv: combinedValue.split(" - ")[1]?.trim() || combinedValue,
+              descripcion_csv:
+                combinedValue.split(" - ")[1]?.trim() || combinedValue,
               codigo_prediccion: selectedOption,
             }
           : producto
@@ -102,28 +108,48 @@ const Correos = ({ setProductosSeleccionados }) => {
   }
 
   return (
-    <div className="container-fluid">
+    <div >
       <div className="bg-white">
-        <table className="table table-striped table-bordered border border-5 p-3">
+        <table className="table table-striped table-bordered border border-5 ">
           <thead className="thead-dark">
             <tr>
-              <th>IMAGEN</th>
-              <th>DESCRIPCIÓN TRANSCRITA</th>
-              <th>PROBABILIDAD (%)</th>
-              <th>DESCRIPCIÓN PRODUCTO</th>
-              <th>CÓDIGO ARTÍCULO</th>
-              <th>BUSCAR PRODUCTO</th>
-              <th>CANTIDAD</th>
+              <th>
+                <strong>IMAGEN</strong>
+              </th>
+              <th>
+                <strong>DESCRIPCIÓN TRANSCRITA</strong>
+              </th>
+              <th>
+                <strong>PROBABILIDAD (%)</strong>
+              </th>
+              <th>
+                <strong>DESCRIPCIÓN PRODUCTO</strong>
+              </th>
+              <th>
+                <strong>CÓDIGO ARTÍCULO</strong>
+              </th>
+              <th>
+                <strong>BUSCAR PRODUCTO</strong>
+              </th>
+              <th>
+                <strong>CANTIDAD</strong>
+              </th>
             </tr>
           </thead>
           <tbody>
             {productos.map((producto, index) => {
               const exactitud = Number(producto.exactitud);
               const exactitudColor =
-                exactitud > 60 ? "#a5d6a7" : exactitud > 40 ? "#fff59d" : "#ef9a9a";
+                exactitud > 60
+                  ? "#a5d6a7"
+                  : exactitud > 40
+                  ? "#fff59d"
+                  : "#ef9a9a";
 
               return (
-                <tr key={`${producto.codigo_prediccion}-${producto.descripcion}-${index}`}>
+                <tr
+                  key={`${producto.codigo_prediccion}-${producto.descripcion}-${index}`}
+                >
                   <td>
                     {producto.imagen ? (
                       <img
@@ -141,7 +167,9 @@ const Correos = ({ setProductosSeleccionados }) => {
                     )}
                   </td>
                   <td>{producto.descripcion}</td>
-                  <td style={{ backgroundColor: exactitudColor, color: "black" }}>
+                  <td
+                    style={{ backgroundColor: exactitudColor, color: "black" }}
+                  >
                     {producto.exactitud}%
                   </td>
                   <td>{producto.descripcion_csv}</td>
@@ -154,28 +182,36 @@ const Correos = ({ setProductosSeleccionados }) => {
                         placeholder="Buscar..."
                         value={busquedas[producto.codigo_prediccion] || ""}
                         onChange={(e) =>
-                          manejarInputBusqueda(e.target.value, producto.codigo_prediccion)
+                          manejarInputBusqueda(
+                            e.target.value,
+                            producto.codigo_prediccion
+                          )
                         }
                       />
-                      {isLoadingBusqueda[producto.codigo_prediccion] && <div>Cargando...</div>}
-                      {opcionesBusqueda[producto.codigo_prediccion]?.length > 0 && (
+                      {isLoadingBusqueda[producto.codigo_prediccion] && (
+                        <div>Cargando...</div>
+                      )}
+                      {opcionesBusqueda[producto.codigo_prediccion]?.length >
+                        0 && (
                         <ul className="list-group mt-2 dropdown-list">
-                          {opcionesBusqueda[producto.codigo_prediccion].map((item) => (
-                            <button
-                              key={item.CodArticle}
-                              className="list-group-item list-group-item-action p-4"
-                              onClick={() =>
-                                manejarSeleccionChange(
-                                  item.CodArticle,
-                                  producto.codigo_prediccion,
-                                  item.Combined,
-                                  producto.descripcion
-                                )
-                              }
-                            >
-                              {item.Combined}
-                            </button>
-                          ))}
+                          {opcionesBusqueda[producto.codigo_prediccion].map(
+                            (item) => (
+                              <button
+                                key={item.CodArticle}
+                                className="list-group-item list-group-item-action p-4"
+                                onClick={() =>
+                                  manejarSeleccionChange(
+                                    item.CodArticle,
+                                    producto.codigo_prediccion,
+                                    item.Combined,
+                                    producto.descripcion
+                                  )
+                                }
+                              >
+                                {item.Combined}
+                              </button>
+                            )
+                          )}
                         </ul>
                       )}
                     </div>
