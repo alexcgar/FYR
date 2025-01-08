@@ -25,11 +25,7 @@ const Correos = ({ setProductosSeleccionados }) => {
             cantidad: Number(producto.cantidad),
           }));
           setProductos(productosConCantidadNumerica);
-        } else {
-          console.error("Los datos recibidos no son un array:", data);
         }
-      } catch (err) {
-        console.error("Error al obtener los productos:", err);
       } finally {
         setLoading(false);
       }

@@ -6,6 +6,7 @@ import {
   generateOrder,
   generateEntity,
 } from "../../Services/apiServices";
+import axios from "axios";
 import "../components_css/Audio.css";
 
 const Employee = ({ productos = [], audioBase64, setIsLoggedIn, email }) => {
@@ -18,7 +19,8 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn, email }) => {
   useEffect(() => {
     const fetchInfo = async () => {
       try {
-        const data = await fetchEmployeeInfo("1", "", ""); //email
+        const data = await fetchEmployeeInfo("1", "", "");
+        console.log(email);
         setEmployeeInfo(data[0]);
       } catch (error) {
         setError(error.message);
@@ -77,21 +79,21 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn, email }) => {
   }, [audioBase64, entityGenerated]);
 
   const handleGenerateOrder = async () => {
-    setIsLoading(true); // Show the loader
+    setIsLoading(true); // Mostrar el cargador
     try {
-      // Add a 35-second delay before proceeding
-      await new Promise((resolve) => setTimeout(resolve, 35000));
-
+      // Añadir un retraso de 35 segundos antes de continuar
+      await new Promise((resolve) => setTimeout(resolve, 55000));
+  
       const response = await fetch("http://localhost:5000/api/predicciones");
       const predicciones = await response.json();
       console.log("Predicciones:", predicciones);
-
+  
       if (!productos || productos.length === 0) {
         console.error("No hay productos seleccionados.");
-        setIsLoading(false); // Hide the loader
+        setIsLoading(false); // Ocultar el cargador
         return;
       }
-
+  
       const orderData = {
         CodCompany: "1",
         IDAudioMP3ToOrderSL: employeeInfo.IDAudioMP3ToOrderSL,
@@ -108,15 +110,24 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn, email }) => {
             Quantity: producto.cantidad,
           })),
       };
-
+  
       console.log("Generando pedido:", orderData);
-
+  
       try {
-        const response = await generateOrder(orderData);
-        console.log("Pedido generado exitosamente:", response);
-        setOrderGenerated(response);
-
-        // Delay logout (optional logic)
+        const orderResponse = await generateOrder(orderData);
+        console.log("Pedido generado exitosamente:", orderResponse);
+        setOrderGenerated(orderResponse);
+  
+        // Marcar correo como leído
+        const correoId = predicciones[0]?.correo_id; // ID del correo procesado
+        if (correoId) {
+          await axios.post("http://localhost:5000/api/marcar_leido", {
+            correo_id: correoId,
+          });
+          console.log(`Correo ${correoId} marcado como leído.`);
+        }
+  
+        // Opcional: Cerrar sesión después de un tiempo
         setTimeout(() => {
           setIsLoggedIn(false);
         }, 988000);
@@ -126,10 +137,10 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn, email }) => {
     } catch (error) {
       console.error("Error al obtener predicciones:", error);
     } finally {
-      setIsLoading(false); // Hide the loader
+      setIsLoading(false); // Ocultar el cargador
     }
   };
-
+  
   return (
     <div>
       {error ? (

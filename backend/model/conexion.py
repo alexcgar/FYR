@@ -28,6 +28,7 @@ def Query():
         WHERE InactiveDate is null  AND CodCompany = '1'
         ORDER BY CodArticle;
         """
+        
 
         cur.execute(sql)
 

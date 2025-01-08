@@ -2,7 +2,8 @@ import base64
 import os
 import shutil
 import sys
-import threading
+import threading 
+from threading import Lock
 import json
 import re
 import time
@@ -19,7 +20,7 @@ import requests
 from sklearn.metrics.pairwise import cosine_similarity
 
 sys.path.append("backend")
-from app.correo import procesar_correos, descargar_audio_desde_correo
+from app.correo import procesar_correos, descargar_audio_desde_correo, marcar_email_como_leido
 
 RUTA_MODELO = "backend/model/modelo_actualizado.joblib"
 RUTA_CSV = "backend/model/consulta_resultado.csv"
@@ -261,7 +262,7 @@ def buscar_en_csv(busqueda, umbral=70):
 
 # Flask application
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 
 @app.route("/api/send-seleccion", methods=["POST"])
@@ -271,7 +272,11 @@ def recibir_seleccion():
     descripcion = data.get("descripcion")
     if not descripcion or not seleccion:
         return jsonify({"error": "Faltan datos en la solicitud."}), 400
-    actualizar_modelo(descripcion, seleccion)
+    try:
+        actualizar_modelo(descripcion, seleccion)
+        return jsonify({"message": "Selección recibida correctamente."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/buscar", methods=["POST"])
@@ -296,7 +301,6 @@ def get_audio():
     # Reemplaza con la ruta deseada
     carpeta_destino = r"C:\Users\acaparros\Desktop\F+R\backend\model\audios"
     ruta_audio = descargar_audio_desde_correo(carpeta_destino)
-
     if ruta_audio:
         try:
             return send_file(
@@ -311,20 +315,19 @@ def get_audio():
         return (jsonify({"error": "No se encontró ningún archivo de audio para descargar."}),404,)
 
 
-predicciones_globales = []
-
+predicciones_recientes = []
+historial_predicciones = []
+predicciones_lock = Lock()
 
 def actualizar_predicciones_periodicamente():
-    global predicciones_globales, model, vectorizer
+    global predicciones_recientes, historial_predicciones
 
     while True:
         try:
             productos = procesar_correos()
-            if not productos:
-                predicciones_globales = []  # Limpiar predicciones si no hay correos nuevos
-                continue  # Saltar si no hay productos
 
             nuevas_predicciones = []
+
             for producto in productos:
                 descripcion = producto[0]
                 cantidad = producto[1]
@@ -364,12 +367,8 @@ def actualizar_predicciones_periodicamente():
                     else "Descripción no encontrada"
                 )
                 imagen = df[df["CodArticle"] == codigo_prediccion]["Image"].values
-                imagen = (
-                    imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None
-                )
-                id_article = df[df["CodArticle"] == codigo_prediccion][
-                    "IDArticle"
-                ].values
+                imagen = (imagen[0] if len(imagen) > 0 and pd.notna(imagen[0]) else None)
+                id_article = df[df["CodArticle"] == codigo_prediccion]["IDArticle"].values
                 id_article = id_article[0] if len(id_article) > 0 else None
 
                 nuevas_predicciones.append(
@@ -385,18 +384,40 @@ def actualizar_predicciones_periodicamente():
                     }
                 )
 
-            predicciones_globales = nuevas_predicciones
+            # Usar un lock para actualizar de manera segura las predicciones
+            with predicciones_lock:
+                predicciones_recientes.clear()
+                predicciones_recientes.extend(nuevas_predicciones)
+                historial_predicciones.extend(nuevas_predicciones)  # Opcional
+
         except Exception as e:
             print(f"Error actualizando predicciones: {e}")
         time.sleep(10)
 
+@app.route("/api/marcar_leido", methods=["POST"])
+def marcar_correo_leido():
+    """Endpoint para marcar un correo como leído."""
+    data = request.get_json()
+    correo_id = data.get("correo_id")
+    if not correo_id:
+        return jsonify({"error": "ID del correo no proporcionado"}), 400
 
-
+    try:
+        marcar_email_como_leido(correo_id)  # Llamada a la función importada
+        return jsonify({"message": "Correo marcado como leído"}), 200
+    except Exception as e:
+        return jsonify({"error": f"No se pudo marcar el correo como leído: {e}"}), 500
 
 @app.route("/api/predicciones", methods=["GET"])
 def obtener_predicciones():
-    global predicciones_globales
-    return jsonify(predicciones_globales), 200
+    global predicciones_recientes
+
+    with predicciones_lock:
+        if not predicciones_recientes:
+            return jsonify({"message": "No se encontraron predicciones", "predicciones": []}), 200
+        return jsonify(predicciones_recientes), 200
+
+
 
 
 if __name__ == "__main__":
@@ -405,4 +426,4 @@ if __name__ == "__main__":
     hilo_actualizador = threading.Thread(
         target=actualizar_predicciones_periodicamente, daemon=True)
     hilo_actualizador.start()
-    app.run()
+    app.run(debug=True, port=5000)

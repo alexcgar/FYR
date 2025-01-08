@@ -13,4 +13,9 @@ hilo_actualizador.start()
 
 # Run the app with Waitress
 if __name__ == "__main__":
+    inicializar_modelo()
+    # Inicia el hilo para actualizar predicciones periódicamente
+    hilo_actualizador = threading.Thread(
+        target=actualizar_predicciones_periodicamente, daemon=True)
+    hilo_actualizador.start()
     serve(app, host="0.0.0.0", port=5000)

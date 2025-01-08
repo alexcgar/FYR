@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button, Collapse, Table } from "react-bootstrap";
 import axios from "axios";
 import PropTypes from "prop-types";
@@ -19,13 +19,13 @@ function AudioPlayer({ setAudioBase64 }) {
     return window.btoa(binary);
   };
 
-  useEffect(() => {
-    const handleObtenerAudio = () => {
-      axios
-        .get("http://localhost:5000/api/getAudio", {
-          responseType: "arraybuffer",
-        })
-        .then((response) => {
+  const handleObtenerAudio = () => {
+    axios
+      .get("http://localhost:5000/api/getAudio", {
+        responseType: "arraybuffer",
+      })
+      .then((response) => {
+        if (response.status === 200) {
           // Convertir arraybuffer a base64
           const base64String = arrayBufferToBase64(response.data);
           setAudioBase64(base64String);
@@ -34,14 +34,10 @@ function AudioPlayer({ setAudioBase64 }) {
           const audioBlob = new Blob([response.data], { type: "audio/mp3" });
           const url = URL.createObjectURL(audioBlob);
           setAudioUrl(url);
-        })
-        .catch((error) => {
-          console.error("Error fetching audio:", error);
-        });
-    };
-
-    handleObtenerAudio();
-  }, [setAudioBase64]);
+        } 
+      })
+     
+  };
 
   const handleDownload = () => {
     if (audioUrl) {
@@ -58,7 +54,10 @@ function AudioPlayer({ setAudioBase64 }) {
     <div className="text-white text-center ">
       <Button
         className="mb-1 "
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open);
+          handleObtenerAudio();
+        }}
         style={{ backgroundColor: "#283746", width: "100%" }}
       >
         {open ? (
@@ -67,9 +66,9 @@ function AudioPlayer({ setAudioBase64 }) {
           <strong>Ver Detalles del Audio</strong>
         )}
       </Button>
-      <Collapse in={open}>
+      <Collapse in={open} >
         <div className=" nova2 text-white">
-          <Table bordered  className=" text-white ">
+          <Table bordered className=" text-white ">
             <thead>
               <tr>
                 <th className="text-white">REPRODUCTOR DE AUDIO</th>
@@ -79,7 +78,7 @@ function AudioPlayer({ setAudioBase64 }) {
             <tbody>
               <tr>
                 <td style={{ width: "100%" }}>
-                  <CustomAudioPlayer audioUrl={audioUrl} />
+                  <CustomAudioPlayer audioUrl={audioUrl}  />
                 </td>
                 <td>
                   <div className="d-flex gap-3">
@@ -101,7 +100,9 @@ function AudioPlayer({ setAudioBase64 }) {
     </div>
   );
 }
+
 AudioPlayer.propTypes = {
   setAudioBase64: PropTypes.func.isRequired, // setAudioBase64 debe ser una función y es requerida
 };
+
 export default AudioPlayer;

@@ -39,6 +39,7 @@ def extract_body_message(cuerpo, correo_id):
         # Cambiar comillas simples por dobles
         cuerpo = cuerpo.replace("'", '"')
         mensaje_json = json.loads(cuerpo)
+        
         if "items" in mensaje_json:
             descriptions = []
             for item in mensaje_json["items"]:
@@ -51,6 +52,7 @@ def extract_body_message(cuerpo, correo_id):
                 quantity = item.get("quantity", "")
                 # Añadir el id del correo
                 descriptions.append([combined, quantity, correo_id])
+                print(f"Producto: {combined}, Cantidad: {quantity}")
             return descriptions
         return []
     except json.JSONDecodeError:
@@ -59,33 +61,24 @@ def extract_body_message(cuerpo, correo_id):
         return []
 
 
-def procesar_correos(): #(cod_order):
+def procesar_correos():
     """
-    Procesa los correos no leídos y extrae los productos que coincidan con un código alfanumérico.
-    
-    Args:
-        codigo_filtro (str): Código alfanumérico para filtrar los correos.
-                             Ejemplo: "ABC12345"
-                             
+    Procesa los correos no leídos y extrae los productos del cuerpo del mensaje.
     Returns:
-        list: Lista de productos extraídos de los correos que coinciden con el filtro.
+        list: Lista de productos extraídos de los correos no leídos.
     """
-    # if not cod_order:
-    #     raise ValueError("Debe proporcionar un código de filtro válido.")
-    
     token = obtener_token()
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/json",
     }
- 
-    # Construir el filtro para Graph API
-     # filtro_base = f"isRead eq false and contains(body/content, 'CodOrder:{cod_order}')" # Cambiado subject por body/content
     
-    
+    # Filtro para correos no leídos
+    filtro_no_leidos = "isRead eq false"
     endpoint = f"https://graph.microsoft.com/v1.0/users/{USER_EMAIL}/mailFolders/Inbox/messages"
-    # params = {"$filter": filtro_base, "$top": "10"}
-    response = requests.get(endpoint, headers=headers) #  params=params
+    params = {"$filter": filtro_no_leidos, "$top": "10"}  # Limitar a los 10 correos no leídos más recientes
+
+    response = requests.get(endpoint, headers=headers, params=params)
     
     if response.status_code == 200:
         messages = response.json().get("value", [])
@@ -93,12 +86,18 @@ def procesar_correos(): #(cod_order):
         for message in messages:
             cuerpo = message.get("body", {}).get("content", "")
             correo_id = message.get("id", "")
+            
+            # Procesar cuerpo del mensaje (HTML o texto plano)
             if message.get("body", {}).get("contentType", "") == "html":
                 from bs4 import BeautifulSoup
                 soup = BeautifulSoup(cuerpo, "html.parser")
                 cuerpo = soup.get_text()
+
+            # Extraer productos
             extracted_items = extract_body_message(cuerpo, correo_id)
             productos.extend(extracted_items)
+
+
         return productos
     else:
         raise Exception(
@@ -115,8 +114,7 @@ def descargar_audio_desde_correo(carpeta_destino):
         "Accept": "application/json",
     }
     # Filtrar correos que tienen adjuntos no leídos
-    endpoint = f"https://graph.microsoft.com/v1.0/users/{
-        USER_EMAIL}/mailFolders/Inbox/messages"
+    endpoint = f"https://graph.microsoft.com/v1.0/users/{USER_EMAIL}/mailFolders/Inbox/messages"
     params = {
         "$filter": "isRead eq false and hasAttachments eq true",
         "$expand": "attachments",
@@ -154,3 +152,16 @@ def descargar_audio_desde_correo(carpeta_destino):
             f"Error al obtener correos: {
                         response.status_code} - {response.text}"
         )
+
+def marcar_email_como_leido(email_id):
+    """Marca un correo como leído usando su ID."""
+    token = obtener_token()
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+    }
+    endpoint = f"https://graph.microsoft.com/v1.0/users/{USER_EMAIL}/messages/{email_id}"
+    data = {"isRead": True}
+    response = requests.patch(endpoint, headers=headers, json=data)
+    if response.status_code != 200:
+        print(f"Error al marcar correo como leído: {response.status_code} - {response.text}")
