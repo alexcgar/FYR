@@ -187,24 +187,6 @@ def backup_model(ruta_original: str, ruta_backup_dir: str):
     print(f"Backup creado en {nombre_backup}")
 
 
-def obtener_rango_descripciones(codigo_prediccion: str) -> List[dict]:
-
-    indices = df.index[df["CodArticle"] == codigo_prediccion].tolist()
-
-    rango_descripciones = []
-    if indices:
-        index_codigo = indices[0]
-        start_index = max(index_codigo - 5, 0)
-        end_index = min(index_codigo + 6, len(df))
-        for i in range(start_index, end_index):
-            descripcion = df.iloc[i]["Description"]
-            descripcion_normalizada = descripcion.lower().strip()
-            if descripcion_normalizada not in descripciones_confirmadas:
-                rango_descripciones.append(
-                    {"CodArticle": df.iloc[i]["CodArticle"], "Description": descripcion}
-                )
-
-    return rango_descripciones
 
 
 def inicializar_modelo():
@@ -273,8 +255,18 @@ def recibir_seleccion():
     if not descripcion or not seleccion:
         return jsonify({"error": "Faltan datos en la solicitud."}), 400
     try:
+        # 1. Actualiza tu modelo con la selección y la descripción
         actualizar_modelo(descripcion, seleccion)
-        return jsonify({"message": "Selección recibida correctamente."}), 200
+
+        # 2. Vuelve a calcular o actualizar las predicciones
+        actualizar_predicciones_periodicamente()  # Ejemplo de función
+
+        # 3. Obtén las predicciones recién actualizadas
+        predicciones_actualizadas = obtener_predicciones()
+
+        # 4. Devuelve las predicciones al frontend
+        return predicciones_actualizadas
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

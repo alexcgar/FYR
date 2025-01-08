@@ -9,7 +9,7 @@ import {
 import axios from "axios";
 import "../components_css/Audio.css";
 
-const Employee = ({ productos = [], audioBase64, setIsLoggedIn, email }) => {
+const Employee = ({ productos = [], audioBase64, setIsLoggedIn, email}) => {
   const [employeeInfo, setEmployeeInfo] = useState(null);
   const [error, setError] = useState(null);
   const [entityGenerated, setEntityGenerated] = useState(false);
@@ -81,9 +81,10 @@ const Employee = ({ productos = [], audioBase64, setIsLoggedIn, email }) => {
   const handleGenerateOrder = async () => {
     setIsLoading(true); // Mostrar el cargador
     try {
-      // Añadir un retraso de 35 segundos antes de continuar
-      await new Promise((resolve) => setTimeout(resolve, 55000));
-  
+      // 1. Recargar datos de 'correos' para tener la info más reciente
+      await new Promise((resolve) => setTimeout(resolve, 30000));
+
+      // 3. Generar predicciones (o recargarlas) antes de continuar
       const response = await fetch("http://localhost:5000/api/predicciones");
       const predicciones = await response.json();
       console.log("Predicciones:", predicciones);

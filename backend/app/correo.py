@@ -52,7 +52,6 @@ def extract_body_message(cuerpo, correo_id):
                 quantity = item.get("quantity", "")
                 # Añadir el id del correo
                 descriptions.append([combined, quantity, correo_id])
-                print(f"Producto: {combined}, Cantidad: {quantity}")
             return descriptions
         return []
     except json.JSONDecodeError:

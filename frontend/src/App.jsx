@@ -13,8 +13,7 @@ function App() {
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
   const [audioBase64, setAudioBase64] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [email, setEmail] = useState('');
-
+  const [email, setEmail] = useState("");
 
   if (!isLoggedIn) {
     return <Login setIsLoggedIn={setIsLoggedIn} setUserEmail={setEmail} />;
@@ -25,7 +24,7 @@ function App() {
       <div className="row">
         <div className="col-12 mb-5 mt-2">
           <Navbar setisLoggedin={setIsLoggedIn} />{" "}
-         </div>
+        </div>
       </div>
 
       <div className="row  justify-content-center flex-grow-1 p-3">
@@ -38,7 +37,10 @@ function App() {
           />
         </div>
         <div className="col-12">
-          <Correos setProductosSeleccionados={setProductosSeleccionados} />
+          <Correos
+           
+            setProductosSeleccionados={setProductosSeleccionados}
+          />
         </div>
       </div>
       <div className="row ">
