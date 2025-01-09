@@ -37,21 +37,17 @@ function App() {
           />
         </div>
         <div className="col-12">
-          <Correos
-           
-            setProductosSeleccionados={setProductosSeleccionados}
-          />
+          <Correos setProductosSeleccionados={setProductosSeleccionados}/>
         </div>
       </div>
       <div className="row ">
-        <div className="col-12 p-4">
+        <div className="col-12 p-4 ">
           <AudioRecorder setAudioBase64={setAudioBase64} />{" "}
-          {/* Incluye el componente AudioRecorder en tu aplicación */}
         </div>
       </div>
       <div className="row mt-auto">
         <div className="col-12 p-0 m-0">
-          <Footer /> {/* Incluye el Footer en tu aplicación */}
+          <Footer /> 
         </div>
       </div>
     </div>
