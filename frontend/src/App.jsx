@@ -44,7 +44,7 @@ function App() {
         </div>
       </div>
       <div className="row ">
-        <div className="col-12">
+        <div className="col-12 p-4">
           <AudioRecorder setAudioBase64={setAudioBase64} />{" "}
           {/* Incluye el componente AudioRecorder en tu aplicación */}
         </div>
