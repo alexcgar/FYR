@@ -243,7 +243,7 @@ def buscar_en_csv(busqueda, umbral=70):
 
 
 app = Flask(__name__, static_folder='static')
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+CORS(app)
 
 
 @app.route("/api/send-seleccion", methods=["POST"])
