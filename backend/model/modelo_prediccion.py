@@ -18,6 +18,8 @@ from thefuzz import fuzz
 from thefuzz import process
 import requests
 from sklearn.metrics.pairwise import cosine_similarity
+from waitress import serve
+
 
 sys.path.append("backend")
 from app.correo import procesar_correos, descargar_audio_desde_correo, marcar_email_como_leido
@@ -434,4 +436,4 @@ if __name__ == "__main__":
     hilo_actualizador = threading.Thread(
         target=actualizar_predicciones_periodicamente, daemon=True)
     hilo_actualizador.start()
-    app.run(debug=True, port=5000)
+    serve(app, host='0.0.0.0', port=5000)

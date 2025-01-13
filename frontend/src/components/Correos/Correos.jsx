@@ -66,8 +66,9 @@ const Correos = ({ setProductosSeleccionados }) => {
   
     // Ejecuta operaciones de fondo
     try {
-      await sendSeleccion(selectedOption, descripcion);
-  
+      sendSeleccion(selectedOption, descripcion);
+      sendSeleccion(selectedOption, descripcion);
+      fetchCorreos();
       // Actualiza búsquedas y limpia opciones tras la selección
       setBusquedas((prevState) => ({
         ...prevState,
